@@ -5,17 +5,16 @@ import 'package:cs_project_1/screens/adminlogin.dart';
 import 'package:flutter/material.dart';
 import 'package:cs_project_1/screens/login.dart';
 import 'package:cs_project_1/screens/register.dart';
-import 'package:cs_project_1/screens/adminlogin.dart';
 
-class selectUser extends StatefulWidget{
-  const selectUser({super.key});
+class selectAction extends StatefulWidget{
+  const selectAction({super.key});
 
  
   @override
-  State<selectUser> createState()=>_selectUserState();
+  State<selectAction> createState()=>_selectUserState();
 
 }
-class _selectUserState extends  State<selectUser> with SingleTickerProviderStateMixin{
+class _selectUserState extends  State<selectAction> with SingleTickerProviderStateMixin{
 
   @override
   Widget build(BuildContext context){
@@ -77,11 +76,11 @@ class _selectUserState extends  State<selectUser> with SingleTickerProviderState
                         mainAxisSize:MainAxisSize.min ,
                         children: [
                           const SizedBox(height: 8,),
-                          const Text('SCHOOL',style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),),
+                          const Text('Login',style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),),
                           TextButton(
-                          child: const Text('Continue as the head of a school',style: TextStyle(color: Colors.black),),
+                          child: const Text('Continue to Login',style: TextStyle(color: Colors.black),),
                           onPressed: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context)=>Login()));
+                            Navigator.push(context, MaterialPageRoute(builder: (context)=>LoginPage()));
                 
                           }, ),
                         ],
@@ -104,11 +103,11 @@ class _selectUserState extends  State<selectUser> with SingleTickerProviderState
                         mainAxisSize:MainAxisSize.min ,
                         children: [
                           const SizedBox(height: 8,),
-                          const Text('STUDENT',style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),),
+                          const Text('Register',style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),),
                           TextButton(
-                          child: const Text('Continue as a Student',style: TextStyle(color: Colors.white),),
+                          child: const Text('Register an Account',style: TextStyle(color: Colors.white),),
                           onPressed: (){
-                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>studentlogin()));
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>RegisterPage()));
                 
                           }, ),
                         ],

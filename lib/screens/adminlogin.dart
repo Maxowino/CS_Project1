@@ -109,7 +109,7 @@ class _adminloginState extends State<adminlogin> {
                           // Perform login for the valid admin user
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => adminhomepage()),
+                            MaterialPageRoute(builder: (context) => AdminHomePage()),
                           );
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar (content:const  Text('Login Successful!'),

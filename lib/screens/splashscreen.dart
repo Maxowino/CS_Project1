@@ -1,6 +1,6 @@
 // ignore_for_file: camel_case_types, prefer_const_constructors
 
-import 'package:cs_project_1/screens/selectuser.dart';
+import 'package:cs_project_1/screens/selectAction.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -18,7 +18,7 @@ void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     Future.delayed(Duration(seconds:4),() {
-       Navigator.pushReplacement(context, MaterialPageRoute(builder:(context) => selectUser(),));
+       Navigator.pushReplacement(context, MaterialPageRoute(builder:(context) => selectAction(),));
     });
   }
   @override
@@ -32,7 +32,7 @@ Widget build(BuildContext context){
   return const Scaffold(
     backgroundColor:Colors.black,
     body: Center(
-      child: Icon(Icons.menu_book_sharp,color:Colors.white,size: 120,),
+      child: Icon(Icons.cloud,color:Colors.white,size: 120,),
       // child:Column(
       //   crossAxisAlignment:CrossAxisAlignment.center,
       //   mainAxisAlignment:MainAxisAlignment.center,
