@@ -1,10 +1,11 @@
 // ignore_for_file: camel_case_types
 
 import 'package:animated_background/animated_background.dart';
+import 'package:cs_project_1/screens/adminlogin.dart';
 import 'package:flutter/material.dart';
-import 'package:cs_project/screens/login.dart';
-import 'package:cs_project/screens/register.dart';
-import 'package:cs_project/screens/adminlogin.dart';
+import 'package:cs_project_1/screens/login.dart';
+import 'package:cs_project_1/screens/register.dart';
+import 'package:cs_project_1/screens/adminlogin.dart';
 
 class selectUser extends StatefulWidget{
   const selectUser({super.key});

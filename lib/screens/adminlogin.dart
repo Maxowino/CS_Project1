@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cs_project/screens/adminhomepage.dart';
+import 'package:cs_project_1/screens/adminhomepage.dart';
 
 // ignore: camel_case_types
 class adminlogin extends StatefulWidget {
