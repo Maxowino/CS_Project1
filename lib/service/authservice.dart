@@ -1,59 +1,66 @@
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService {
-
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<String?> register(
-      String email,
-      String password,
-  ) async {
-
+  // REGISTER
+  Future<String?> register({
+    required String email,
+    required String password,
+  }) async {
     try {
-
-      UserCredential userCredential =
+      UserCredential user =
           await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      await userCredential.user!
-          .sendEmailVerification();
+      await user.user!.sendEmailVerification();
+
+      await _firestore
+          .collection("users")
+          .doc(user.user!.uid)
+          .set({
+        "email": email,
+        "verified": false,
+        "createdAt": Timestamp.now(),
+      });
 
       return null;
-
     } on FirebaseAuthException catch (e) {
       return e.message;
     }
   }
 
-  Future<String?> login(
-      String email,
-      String password,
-  ) async {
-
+  // LOGIN
+  Future<String?> login({
+    required String email,
+    required String password,
+  }) async {
     try {
-
-      UserCredential credential =
+      UserCredential user =
           await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      if (!credential.user!.emailVerified) {
+      await user.user!.reload();
+
+      if (!user.user!.emailVerified) {
         await _auth.signOut();
+
         return "Verify your email first";
       }
 
       return null;
-
     } on FirebaseAuthException catch (e) {
       return e.message;
     }
   }
 
-  Future<void> logout() async {
+  Future logout() async {
     await _auth.signOut();
   }
 }
