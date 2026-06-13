@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'verifyemail.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({Key? key}) : super(key: key);
+  const RegisterPage({super.key});
 
   @override
   State<RegisterPage> createState() =>
@@ -12,6 +12,7 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState
     extends State<RegisterPage> {
+
   final _formKey =
       GlobalKey<FormState>();
 
@@ -29,6 +30,8 @@ class _RegisterPageState
   bool _obscureConfirmPassword =
       true;
 
+  bool _loading = false;
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -39,63 +42,86 @@ class _RegisterPageState
   }
 
   Future<void> _register() async {
-    if (_formKey.currentState!
-        .validate()) {
-      String? result =
-          await AuthService()
-              .register(
-        email: _emailController.text
-            .trim(),
-        password:
-            _passwordController.text
-                .trim(),
+
+    if (!_formKey.currentState!
+        .validate()) return;
+
+    setState(() {
+      _loading = true;
+    });
+
+    String? result =
+        await AuthService()
+            .register(
+      email:
+          _emailController.text
+              .trim(),
+
+      password:
+          _passwordController
+              .text
+              .trim(),
+    );
+
+    setState(() {
+      _loading = false;
+    });
+
+    if (!mounted) return;
+
+    if (result == null) {
+
+      Navigator.pushReplacement(
+        context,
+
+        MaterialPageRoute(
+          builder:
+              (_) =>
+                  const VerifyEmailPage(),
+        ),
       );
 
-      if (result == null) {
-        ScaffoldMessenger.of(
-                context)
-            .showSnackBar(
-          const SnackBar(
-            content: Text(
-                "Verification email sent"),
-          ),
-        );
+    } else {
 
-        DefaultTabController.of(
-                context)
-            .animateTo(0);
-      } else {
-        ScaffoldMessenger.of(
-                context)
-            .showSnackBar(
-          SnackBar(
-            content:
-                Text(result),
-          ),
-        );
-      }
+      ScaffoldMessenger.of(
+              context)
+          .showSnackBar(
+        SnackBar(
+          content:
+              Text(result),
+        ),
+      );
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+      BuildContext context) {
+
     return Padding(
       padding:
-          const EdgeInsets.all(24),
+          const EdgeInsets.all(
+              24),
 
-      child: SingleChildScrollView(
+      child:
+          SingleChildScrollView(
+
         child: Form(
+
           key: _formKey,
 
           child: Column(
-            mainAxisAlignment:
-                MainAxisAlignment
-                    .center,
 
             children: [
+
+              const SizedBox(
+                  height: 20),
+
               const Text(
                 "Create Account",
-                style: TextStyle(
+
+                style:
+                    TextStyle(
                   fontSize: 28,
                   fontWeight:
                       FontWeight
@@ -104,39 +130,51 @@ class _RegisterPageState
               ),
 
               const SizedBox(
-                  height: 32),
+                  height: 35),
 
               TextFormField(
+
                 controller:
                     _emailController,
 
+                keyboardType:
+                    TextInputType
+                        .emailAddress,
+
                 decoration:
-                    const InputDecoration(
+                    InputDecoration(
+
                   labelText:
-                      'Email',
+                      "Email",
 
                   prefixIcon:
-                      Icon(
+                      const Icon(
                     Icons.email,
                   ),
 
                   border:
-                      OutlineInputBorder(),
+                      OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius
+                            .circular(
+                                15),
+                  ),
                 ),
 
                 validator:
                     (value) {
+
                   if (value ==
                           null ||
                       value
                           .isEmpty) {
-                    return 'Please enter email';
+                    return "Enter email";
                   }
 
                   if (!value
                       .contains(
-                          '@')) {
-                    return 'Invalid email';
+                          "@")) {
+                    return "Invalid email";
                   }
 
                   return null;
@@ -144,9 +182,10 @@ class _RegisterPageState
               ),
 
               const SizedBox(
-                  height: 20),
+                  height: 18),
 
               TextFormField(
+
                 controller:
                     _passwordController,
 
@@ -155,8 +194,9 @@ class _RegisterPageState
 
                 decoration:
                     InputDecoration(
+
                   labelText:
-                      'Password',
+                      "Password",
 
                   prefixIcon:
                       const Icon(
@@ -164,11 +204,19 @@ class _RegisterPageState
                   ),
 
                   border:
-                      const OutlineInputBorder(),
+                      OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius
+                            .circular(
+                                15),
+                  ),
 
                   suffixIcon:
                       IconButton(
-                    icon: Icon(
+
+                    icon:
+                        Icon(
+
                       _obscurePassword
                           ? Icons
                               .visibility_off
@@ -178,10 +226,13 @@ class _RegisterPageState
 
                     onPressed:
                         () {
+
                       setState(
                           () {
+
                         _obscurePassword =
                             !_obscurePassword;
+
                       });
                     },
                   ),
@@ -189,17 +240,18 @@ class _RegisterPageState
 
                 validator:
                     (value) {
+
                   if (value ==
                           null ||
                       value
                           .isEmpty) {
-                    return 'Enter password';
+                    return "Enter password";
                   }
 
                   if (value
                           .length <
                       6) {
-                    return 'Minimum 6 characters';
+                    return "Minimum 6 characters";
                   }
 
                   return null;
@@ -207,9 +259,10 @@ class _RegisterPageState
               ),
 
               const SizedBox(
-                  height: 20),
+                  height: 18),
 
               TextFormField(
+
                 controller:
                     _confirmPasswordController,
 
@@ -218,8 +271,9 @@ class _RegisterPageState
 
                 decoration:
                     InputDecoration(
+
                   labelText:
-                      'Confirm Password',
+                      "Confirm Password",
 
                   prefixIcon:
                       const Icon(
@@ -227,11 +281,19 @@ class _RegisterPageState
                   ),
 
                   border:
-                      const OutlineInputBorder(),
+                      OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius
+                            .circular(
+                                15),
+                  ),
 
                   suffixIcon:
                       IconButton(
-                    icon: Icon(
+
+                    icon:
+                        Icon(
+
                       _obscureConfirmPassword
                           ? Icons
                               .visibility_off
@@ -241,10 +303,13 @@ class _RegisterPageState
 
                     onPressed:
                         () {
+
                       setState(
                           () {
+
                         _obscureConfirmPassword =
                             !_obscureConfirmPassword;
+
                       });
                     },
                   ),
@@ -252,10 +317,18 @@ class _RegisterPageState
 
                 validator:
                     (value) {
+
+                  if (value ==
+                          null ||
+                      value
+                          .isEmpty) {
+                    return "Confirm password";
+                  }
+
                   if (value !=
                       _passwordController
                           .text) {
-                    return 'Passwords do not match';
+                    return "Passwords do not match";
                   }
 
                   return null;
@@ -266,34 +339,69 @@ class _RegisterPageState
                   height: 30),
 
               SizedBox(
+
                 width:
                     double.infinity,
 
+                height: 55,
+
                 child:
                     ElevatedButton(
+
                   onPressed:
-                      _register,
+                      _loading
+                          ? null
+                          : _register,
 
                   child:
-                      const Text(
-                    'Register',
-                  ),
+                      _loading
+
+                          ? const SizedBox(
+                              width:
+                                  22,
+                              height:
+                                  22,
+
+                              child:
+                                  CircularProgressIndicator(
+                                strokeWidth:
+                                    3,
+                              ),
+                            )
+
+                          : const Text(
+                              "Register",
+
+                              style:
+                                  TextStyle(
+                                fontSize:
+                                    18,
+                              ),
+                            ),
                 ),
               ),
 
               const SizedBox(
-                  height: 10),
+                  height: 15),
 
               TextButton(
-                onPressed: () {
-                  DefaultTabController.of(context).animateTo(0);
+
+                onPressed:
+                    () {
+
+                  DefaultTabController
+                      .of(
+                          context)
+                      .animateTo(
+                          0);
+
                 },
 
                 child:
                     const Text(
                   "Already have an account? Login",
                 ),
-              )
+              ),
             ],
           ),
         ),
