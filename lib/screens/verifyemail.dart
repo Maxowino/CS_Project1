@@ -33,15 +33,13 @@ class _VerifyEmailPageState
     if (user != null &&
         user.emailVerified) {
 
-      await FirebaseAuth.instance
-          .signOut();
+      await FirebaseAuth.instance.signOut();
 
       if (!mounted) return;
 
       Navigator.of(context)
           .popUntil(
-              (route) =>
-                  route.isFirst);
+              (route) =>route.isFirst);
 
       ScaffoldMessenger.of(context)
           .showSnackBar(
@@ -81,8 +79,7 @@ class _VerifyEmailPageState
       body: Padding(
 
         padding:
-            const EdgeInsets.all(
-                24),
+            const EdgeInsets.all(24),
 
         child: Column(
 
