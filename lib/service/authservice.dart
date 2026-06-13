@@ -6,33 +6,29 @@ class AuthService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // REGISTER
-  Future<String?> register({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      UserCredential user =
-          await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+  Future<String?> register({required String email,required String password,
+                       }) async {
 
-      await user.user!.sendEmailVerification();
+                  try {
 
-      await _firestore
-          .collection("users")
-          .doc(user.user!.uid)
-          .set({
-        "email": email,
-        "verified": false,
-        "createdAt": Timestamp.now(),
-      });
+                      UserCredential user =await _auth.createUserWithEmailAndPassword(
+                          email: email,
+                          password: password,
+);
 
-      return null;
-    } on FirebaseAuthException catch (e) {
-      return e.message;
-    }
-  }
+              await user.user?.sendEmailVerification();
+              await _firestore.collection("users").doc(user.user!.uid).set({
+                         "email": email,
+                         "verified": false,
+                         "createdAt": Timestamp.now(),
+                         });
+
+                 return null;
+                } 
+                on FirebaseAuthException catch (e) {
+                return e.message;
+}
+}
 
   // LOGIN
   Future<String?> login({

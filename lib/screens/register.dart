@@ -1,5 +1,6 @@
 import 'package:cs_project_1/service/authservice.dart';
 import 'package:flutter/material.dart';
+import 'verifyemail.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -285,10 +286,7 @@ class _RegisterPageState
 
               TextButton(
                 onPressed: () {
-                  DefaultTabController.of(
-                          context)
-                      .animateTo(
-                          0);
+                  DefaultTabController.of(context).animateTo(0);
                 },
 
                 child:

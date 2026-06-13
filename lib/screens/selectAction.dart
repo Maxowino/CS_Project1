@@ -103,7 +103,7 @@ class _selectActionState
                       const TabBar(
 
                     indicatorSize:
-                        TabBarIndicatorSize.tab,
+                        TabBarIndicatorSize.tab,//scrollable 
                     indicator:
                         BoxDecoration(
                       color:
