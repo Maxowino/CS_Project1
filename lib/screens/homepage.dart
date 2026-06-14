@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cs_project_1/screens/selectAction.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -147,11 +148,16 @@ class _HomePageState
                   const Text("Logout",
               ),
 
-              onTap:
-                  () async {
+             onTap: () async {
+              Navigator.pop(context); // close drawer
 
-                await FirebaseAuth.instance.signOut();
-              },
+              await FirebaseAuth.instance.signOut();
+              if (!mounted) return;
+              Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) => const selectAction()),
+              (route) => false,
+               );
+             } //logout func
             )
           ],
         ),
