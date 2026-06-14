@@ -1,5 +1,6 @@
 import 'package:cs_project_1/service/authservice.dart';
 import 'package:flutter/material.dart';
+import 'homepage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key})
@@ -62,7 +63,10 @@ class _LoginPageState
         ),
       );
 
-      // Navigator.pushReplacement(...)
+      Navigator.pushReplacement(
+        context,MaterialPageRoute(builder: (_) =>const HomePage(),
+        ),
+);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

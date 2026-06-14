@@ -1,10 +1,9 @@
-import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import 'package:geolocator/geolocator.dart';
 
@@ -19,15 +18,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState
     extends State<HomePage> {
 
-  GoogleMapController?
-      mapController;
-
   Position? currentPosition;
 
-  final Set<Marker>
-      markers = {};
-
   bool loading = true;
+
+  final List<Marker>
+      markers = [];
 
   @override
   void initState() {
@@ -36,7 +32,8 @@ class _HomePageState
     loadLocation();
   }
 
-  Future loadLocation() async {
+  Future<void> loadLocation()
+      async {
 
     bool enabled =
         await Geolocator
@@ -61,39 +58,39 @@ class _HomePageState
 
       Marker(
 
-        markerId:
-            const MarkerId(
-          "me",
+        point: LatLng(
+          currentPosition!
+              .latitude,
+
+          currentPosition!
+              .longitude,
         ),
 
-        position: LatLng(
-          currentPosition!.latitude,
-          currentPosition!.longitude,
-        ),
+        width: 60,
 
-        infoWindow:
-            const InfoWindow(
-          title:
-              "Your Location",
+        height: 60,
+
+        child: const Icon(
+          Icons.my_location,
+          size: 40,
+          color: Colors.blue,
         ),
       ),
     );
 
-    loadReports();
+    await loadReports();
 
     setState(() {
       loading = false;
     });
   }
 
-  Future loadReports() async {
+  Future<void>
+      loadReports() async {
 
     var reports =
-        await FirebaseFirestore
-            .instance
-            .collection(
-                "flood_reports")
-            .get();
+        await FirebaseFirestore .instance.collection(
+                "flood_reports").get();
 
     for (var report
         in reports.docs) {
@@ -102,34 +99,23 @@ class _HomePageState
 
         Marker(
 
-          markerId:
-              MarkerId(
-            report.id,
-          ),
-
-          position:
-              LatLng(
+          point: LatLng(
             report["lat"],
             report["lng"],
           ),
 
-          icon:
-              BitmapDescriptor
-                  .defaultMarkerWithHue(
-            BitmapDescriptor
-                .hueRed,
-          ),
+          width: 50,
 
-          infoWindow:
-              InfoWindow(
-            title:
-                report["risk"],
+          height: 50,
+
+          child: const Icon(
+            Icons.warning,
+            color: Colors.red,
+            size: 35,
           ),
         ),
       );
     }
-
-    setState(() {});
   }
 
   @override
@@ -147,29 +133,24 @@ class _HomePageState
             const DrawerHeader(
 
               child: Icon(
-                Icons.person,
-                size: 80,
+                Icons.person, size: 80,
               ),
             ),
 
             ListTile(
 
               leading:
-                  const Icon(
-                Icons.logout,
+                  const Icon(Icons.logout,
               ),
 
               title:
-                  const Text(
-                "Logout",
+                  const Text("Logout",
               ),
 
               onTap:
                   () async {
 
-                await FirebaseAuth
-                    .instance
-                    .signOut();
+                await FirebaseAuth.instance.signOut();
               },
             )
           ],
@@ -221,9 +202,6 @@ class _HomePageState
                             TextStyle(
                           color:
                               Colors.white,
-
-                          fontWeight:
-                              FontWeight.bold,
                         ),
                       ),
 
@@ -231,29 +209,26 @@ class _HomePageState
                         "LOW",
                         style:
                             TextStyle(
+                          fontSize:
+                              22,
+
                           color:
                               Colors.white,
-
-                          fontSize:
-                              24,
                         ),
                       ),
                     ],
                   ),
                 ),
 
-                SizedBox(
-
-                  height: 380,
+                Expanded(
 
                   child:
-                      GoogleMap(
+                      FlutterMap(
 
-                    initialCameraPosition:
+                    options:
+                        MapOptions(
 
-                        CameraPosition(
-
-                      target:
+                      initialCenter:
                           LatLng(
                         currentPosition!
                             .latitude,
@@ -262,25 +237,24 @@ class _HomePageState
                             .longitude,
                       ),
 
-                      zoom:
+                      initialZoom:
                           15,
                     ),
 
-                    myLocationEnabled:
-                        true,
+                    children: [
 
-                    myLocationButtonEnabled:
-                        true,
+                      TileLayer(
 
-                    markers:
-                        markers,
+                        urlTemplate:
 
-                    onMapCreated:
-                        (controller) {
+                            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                      ),
 
-                      mapController =
-                          controller;
-                    },
+                      MarkerLayer(
+                        markers:
+                            markers,
+                      ),
+                    ],
                   ),
                 ),
 
@@ -292,21 +266,21 @@ class _HomePageState
                               12),
 
                   child:
-                      ListTile(
+                      const ListTile(
 
                     leading:
-                        const Icon(
+                        Icon(
                       Icons.cloud,
                     ),
 
                     title:
-                        const Text(
+                        Text(
                       "Weather",
                     ),
 
                     subtitle:
-                        const Text(
-                      "API integration coming next",
+                        Text(
+                      "Weather API coming next",
                     ),
                   ),
                 ),
@@ -322,7 +296,8 @@ class _HomePageState
           Icons.add_location,
         ),
 
-        onPressed: () {
+        onPressed:
+            () {
 
           Navigator.pushNamed(
             context,
@@ -335,7 +310,7 @@ class _HomePageState
 
           BottomNavigationBar(
 
-        items: const [
+        items: [
 
           BottomNavigationBarItem(
             icon:
