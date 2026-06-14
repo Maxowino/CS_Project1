@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'selectAction.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class VerifyEmailPage extends StatefulWidget {
   const VerifyEmailPage({super.key});
@@ -17,76 +18,90 @@ class _VerifyEmailPageState
 
   Future<void> checkVerification() async {
 
-    setState(() {
-      _checking = true;
-    });
+  setState(() {
+    _checking = true;
+  });
 
-    try {
+  try {
+
+    await FirebaseAuth.instance
+        .currentUser
+        ?.reload();
+
+    final user =
+        FirebaseAuth.instance
+            .currentUser;
+
+    if (user != null &&
+        user.emailVerified) {
+
+      // UPDATE FIRESTORE IMMEDIATELY
+      await FirebaseFirestore
+          .instance
+          .collection("users")
+          .doc(user.uid)
+          .update({
+
+        "verified": true,
+
+        "verifiedAt":
+            Timestamp.now(),
+      });
 
       await FirebaseAuth.instance
-          .currentUser
-          ?.reload();
-
-      final user =
-          FirebaseAuth.instance
-              .currentUser;
+          .signOut();
 
       if (!mounted) return;
 
-      if (user != null &&
-          user.emailVerified) {
+      Navigator.pushAndRemoveUntil(
 
-        await FirebaseAuth.instance
-            .signOut();
+        context,
 
-        Navigator.pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder:
+              (_) =>
+                  const selectAction(
+                    initialTab: 0,
+                  ),
+        ),
 
-          context,
+        (route) => false,
+      );
 
-          MaterialPageRoute(
-            builder:
-                (_) =>
-                    const selectAction(
-                      initialTab: 0,
-                    ),
-          ),
-
-          (route) => false,
-        );
-
-      } else {
-
-        ScaffoldMessenger.of(context)
-            .showSnackBar(
-
-          const SnackBar(
-
-            content: Text(
-              "Email not verified yet",
-            ),
-          ),
-        );
-      }
-
-    } catch (e) {
+    } else {
 
       ScaffoldMessenger.of(context)
           .showSnackBar(
 
-        SnackBar(
-          content:
-              Text(e.toString()),
+        const SnackBar(
+          content: Text(
+            "Email not verified yet",
+          ),
         ),
       );
-
     }
 
-    if (mounted) {
-      setState(() {
-        _checking = false;
-      });
-    }
+  } catch (e) {
+
+    ScaffoldMessenger.of(context)
+        .showSnackBar(
+
+      SnackBar(
+        content:
+            Text(
+              e.toString(),
+            ),
+      ),
+    );
   }
+
+  if (mounted) {
+
+    setState(() {
+      _checking = false;
+    });
+  }
+}
 
   Future<void> resendEmail() async {
 
