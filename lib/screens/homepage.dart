@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cs_project_1/screens/selectAction.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
+import 'package:cs_project_1/screens/report.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -255,7 +255,6 @@ class _HomePageState
 
                             "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
                       ),
-
                       MarkerLayer(
                         markers:
                             markers,
@@ -293,25 +292,20 @@ class _HomePageState
               ],
             ),
 
-      floatingActionButton:
+     floatingActionButton:
 
-          FloatingActionButton(
+        FloatingActionButton(
+            child:const Icon(Icons.add_location,),
+            onPressed: () {
+            Navigator.push(
+              context,MaterialPageRoute(
+                  builder: (context) =>
+                   const ReportPage(),
 
-        child:
-            const Icon(
-          Icons.add_location,
+                 ),
+               );
+          },
         ),
-
-        onPressed:
-            () {
-
-          Navigator.pushNamed(
-            context,
-            "/report",
-          );
-        },
-      ),
-
       bottomNavigationBar:
 
           BottomNavigationBar(
