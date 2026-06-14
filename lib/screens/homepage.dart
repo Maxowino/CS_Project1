@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:cs_project_1/screens/report.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-
+import 'package:cs_project_1/screens/profile.dart';
 import 'package:geolocator/geolocator.dart';
 
 class HomePage extends StatefulWidget {
@@ -131,12 +131,23 @@ class _HomePageState
 
           children: [
 
-            const DrawerHeader(
-
-              child: Icon(
-                Icons.person, size: 80,
-              ),
-            ),
+            DrawerHeader(
+             child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                const Icon(Icons.person,size: 60,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                FirebaseAuth.instance.currentUser?.email ?? "No Email",
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+               fontSize: 16,
+        ),
+      ),
+    ],
+  ),
+),
 
             ListTile(
 
@@ -292,54 +303,55 @@ class _HomePageState
               ],
             ),
 
-     floatingActionButton:
+    //  floatingActionButton:
 
-        FloatingActionButton(
-            child:const Icon(Icons.add_location,),
-            onPressed: () {
-            Navigator.push(
-              context,MaterialPageRoute(
-                  builder: (context) =>
-                   const ReportPage(),
+    //     FloatingActionButton(
+    //         child:const Icon(Icons.add_location,),
+    //         onPressed: () {
+    //         Navigator.push(
+    //           context,MaterialPageRoute(
+    //               builder: (context) =>
+    //                const ReportPage(),
 
-                 ),
-               );
-          },
-        ),
-      bottomNavigationBar:
+    //              ),
+    //            );
+    //       },
+    //     ),
+     bottomNavigationBar: BottomNavigationBar(
 
-          BottomNavigationBar(
+currentIndex: 0,
 
-        items: [
+onTap: (index) {
 
-          BottomNavigationBarItem(
-            icon:
-                Icon(
-              Icons.map,
-            ),
-            label:
-                "Map",
-          ),
+if (index == 1) {
 
-          BottomNavigationBarItem(
-            icon:
-                Icon(
-              Icons.warning,
-            ),
-            label:
-                "Alerts",
-          ),
-
-          BottomNavigationBarItem(
-            icon:
-                Icon(
-              Icons.person,
-            ),
-            label:
-                "Profile",
-          ),
-        ],
-      ),
+Navigator.push(
+context,
+MaterialPageRoute(
+builder: (_) =>
+const ReportPage(),
+),
+);
+}
+  //      if (index == 2) {
+  //        Navigator.push(context,
+  //       MaterialPageRoute(
+  //            builder: (_) => const ProfilePage(),
+  //        ),
+  //        );
+  //      }
+   },
+        items: const [
+             BottomNavigationBarItem(
+               icon:Icon(Icons.map,),
+               label:"Map",
+               ),
+             BottomNavigationBarItem(
+              icon:Icon(Icons.add_location,),
+               label:"Report",),
+             
+                ],
+             ),
     );
   }
 }
