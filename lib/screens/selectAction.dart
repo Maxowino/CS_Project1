@@ -7,11 +7,15 @@ import 'login.dart';
 import 'register.dart';
 
 class selectAction extends StatefulWidget {
-  const selectAction({super.key});
+   final int initialTab;
+
+  const selectAction({
+    super.key,
+    this.initialTab = 0,
+  });
 
   @override
-  State<selectAction> createState() =>
-      _selectActionState();
+  State<selectAction> createState() => _selectActionState();
 }
 
 class _selectActionState
@@ -21,6 +25,7 @@ class _selectActionState
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
+       initialIndex: widget.initialTab,
 
       child: Scaffold(
         backgroundColor:

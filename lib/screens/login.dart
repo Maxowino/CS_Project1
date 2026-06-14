@@ -246,12 +246,11 @@ class _LoginPageState
                               width:22,
                               height:22,
                               child:
-                                  CircularProgressIndicator(
-                                strokeWidth:3,
+                                  CircularProgressIndicator( strokeWidth:3,
                               ),
                             )
-                          : const Text(
-                              "Login",
+                          : 
+                          const Text("Login",
                               style:
                                   TextStyle(
                                      fontSize:18,
