@@ -9,26 +9,19 @@ import 'package:geolocator/geolocator.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-
   @override
-  State<HomePage> createState() =>
-      _HomePageState();
+  State<HomePage> createState() =>_HomePageState();
 }
-
 class _HomePageState
     extends State<HomePage> {
-
   Position? currentPosition;
-
   bool loading = true;
-
   final List<Marker>
       markers = [];
 
   @override
   void initState() {
     super.initState();
-
     loadLocation();
   }
 
@@ -55,21 +48,15 @@ class _HomePageState
             .getCurrentPosition();
 
     markers.add(
-
       Marker(
-
         point: LatLng(
-          currentPosition!
-              .latitude,
-
+          currentPosition!.latitude,
           currentPosition!
               .longitude,
         ),
 
         width: 60,
-
         height: 60,
-
         child: const Icon(
           Icons.my_location,
           size: 40,
@@ -79,7 +66,6 @@ class _HomePageState
     );
 
     await loadReports();
-
     setState(() {
       loading = false;
     });
