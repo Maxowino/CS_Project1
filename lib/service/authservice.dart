@@ -66,19 +66,15 @@ class AuthService {
                 }) async {
 
                     try {
-
                       UserCredential user =
                       await _auth.signInWithEmailAndPassword(
                        email: email,
                       password: password,
                      );
-
                       await user.user?.reload();
-
                  if (!(user.user?.emailVerified ?? false)) {
                   await _auth.signOut();
-
-                     return "Verify your email first";
+                  return "Verify your email first";
                      }
 
       // update firestore i

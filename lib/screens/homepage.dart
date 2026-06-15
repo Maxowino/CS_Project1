@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:cs_project_1/screens/report.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:cs_project_1/screens/profile.dart';
 import 'package:geolocator/geolocator.dart';
 
 class HomePage extends StatefulWidget {
@@ -294,10 +293,10 @@ class _HomePageState
                       "Weather",
                     ),
 
-                    subtitle:
-                        Text(
-                      "Weather API coming next",
-                    ),
+                    // subtitle:
+                    //     Text(
+                    //   "Weather API coming next",
+                    // ),
                   ),
                 ),
               ],
