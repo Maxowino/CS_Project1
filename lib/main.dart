@@ -1,5 +1,4 @@
-import 'package:cs_project_1/screens/homepage.dart';
-import 'package:cs_project_1/screens/login.dart';
+
 import 'package:cs_project_1/screens/splashscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
