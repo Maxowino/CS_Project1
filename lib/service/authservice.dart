@@ -77,7 +77,7 @@ class AuthService {
                   return "Verify your email first";
                      }
 
-      // update firestore i
+      // update verification status 
       await _firestore
           .collection("users")
           .doc(user.user!.uid)
