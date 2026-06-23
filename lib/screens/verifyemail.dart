@@ -20,7 +20,7 @@ class _VerifyEmailPageState
 
   setState(() {
     _checking = true;
-  });
+          });
 
   try {
 
@@ -35,7 +35,7 @@ class _VerifyEmailPageState
     if (user != null &&
         user.emailVerified) {
 
-      // UPDATE FIRESTORE IMMEDIATELY
+      // UPDATE FIRESTORE 
       await FirebaseFirestore
           .instance
           .collection("users")
@@ -193,23 +193,17 @@ class _VerifyEmailPageState
                         ?.email ??
                     "",
 
-                textAlign:
-                    TextAlign.center,
-
+                textAlign:TextAlign.center,
                 style:
                     const TextStyle(
                   color:
                       Colors.grey,
                 ),
               ),
-
               const SizedBox(
                   height: 10),
-
               const Text(
-
                 "Open the verification email and verify your account before continuing.",
-
                 textAlign:
                     TextAlign.center,
               ),
@@ -228,45 +222,27 @@ class _VerifyEmailPageState
                     ElevatedButton(
 
                   onPressed:
-                      _checking
-                          ? null
-                          : checkVerification,
-
+                      _checking? null : checkVerification,
                   child:
-                      _checking
-
-                          ? const SizedBox(
-                              width:
-                                  22,
-                              height:
-                                  22,
-
+                      _checking ? const SizedBox(
+                              width:22,
+                              height:22,
                               child:
                                   CircularProgressIndicator(
-                                strokeWidth:
-                                    3,
+                                strokeWidth:3,
                               ),
                             )
-
                           : const Text(
                               "I Verified My Email",
                             ),
                 ),
               ),
 
-              const SizedBox(
-                  height: 12),
-
-              TextButton(
-
-                onPressed:
-                    resendEmail,
-
+              const SizedBox(height: 12),
+              TextButton(onPressed: resendEmail,
                 child:
-                    const Text(
-                  "Resend Email",
-                ),
-              ),
+                    const Text("Resend Email",),
+              ),// to resend the verification email
             ],
           ),
         ),

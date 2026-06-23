@@ -99,23 +99,17 @@ class _LoginPageState
                 "Welcome Back",
                 style:
                     TextStyle(
-                  fontSize:
-                      28,
-                  fontWeight:
-                      FontWeight.bold,
+                  fontSize:28,
+                  fontWeight:FontWeight.bold,
                 ),
               ),
 
-              const SizedBox(
-                  height: 10),
-
+              const SizedBox(height: 10),
               Text(
                 "Login to continue",
-
                 style:
                     TextStyle(
-                  color:
-                      Colors.grey[600],
+                  color: Colors.grey[600],
                 ),
               ),
 
@@ -123,21 +117,13 @@ class _LoginPageState
                   height: 35),
 
               TextFormField(
-                controller:
-                    _emailController,
-
-                keyboardType:
-                    TextInputType.emailAddress,
-
+                controller:_emailController,
+                keyboardType:TextInputType.emailAddress,
                 decoration:
                     InputDecoration(
                   labelText:
                       "Email",
-
-                  prefixIcon:
-                      const Icon(
-                    Icons.email,
-                  ),
+                  prefixIcon:const Icon(Icons.email,),
 
                   border:
                       OutlineInputBorder(
@@ -148,41 +134,29 @@ class _LoginPageState
 
                 validator:
                     (value) {
-                  if (value ==
-                          null ||
+                  if (value ==null ||
                       value.isEmpty) {
                     return "Enter email";
                   }
 
-                  if (!value.contains(
-                          '@')) {
+                  if (!value.contains('@')) {
                     return "Invalid email";
-                  }
+                  } 
 
                   return null;
-                },
-              ),
+                }, 
+              ),//email validation
 
               const SizedBox(
                   height: 18),
 
               TextFormField(
-                controller:
-                    _passwordController,
-
-                obscureText:
-                    _obscurePassword,
-
-                decoration:
-                    InputDecoration(
-                  labelText:
-                      "Password",
-
-                  prefixIcon:
-                      const Icon(
-                    Icons.lock,
+                controller:_passwordController,
+                obscureText: _obscurePassword,
+                decoration:InputDecoration(
+                  labelText:"Password",
+                  prefixIcon:const Icon(Icons.lock,
                   ),
-
                   border:
                       OutlineInputBorder(
                     borderRadius:
@@ -228,9 +202,7 @@ class _LoginPageState
               SizedBox(
                 width:
                     double.infinity,
-
                 height: 55,
-
                 child:
                     ElevatedButton(
                   style:

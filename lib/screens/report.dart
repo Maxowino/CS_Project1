@@ -74,67 +74,34 @@ class _ReportPageState
       ScaffoldMessenger.of(context)
           .showSnackBar(
         const SnackBar(
-          content: Text(
-            "Location unavailable",
-          ),
+          content: Text( "Location unavailable",),
         ),
       );
-
       return;
     }
-
     setState(() {
       loading = true;
     });
-
     try {
-
       User? user =
-          FirebaseAuth
-              .instance
-              .currentUser;
-
-      await FirebaseFirestore
-          .instance
-          .collection(
-              "flood_reports")
-          .add({
-
-        "uid":
-            user?.uid,
-
-        "email":
-            user?.email,
-
-        "description":
-            descriptionController.text
-                .trim(),
-
-        "risk":
-            risk,
-
-        "lat":
-            currentPosition!.latitude,
-
-        "lng":
-            currentPosition!.longitude,
-
-        "createdAt":
-            Timestamp.now(),
-      });
+          FirebaseAuth.instance.currentUser;
+      await FirebaseFirestore.instance.collection("flood_reports").add({
+        "uid": user?.uid,
+        "email":user?.email,
+        "description": descriptionController.text.trim(),
+        "risk": risk,
+        "lat": currentPosition!.latitude,
+        "lng":currentPosition!.longitude,
+        "createdAt": Timestamp.now(),
+      }); // ties the reports to users that submits it
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:
-              Text(
-            "Report submitted",
-          ),
+          content: Text( "Report submitted",),
         ),
-      );
-
+      ); // success message
       Navigator.pop(context);
 
     } catch (e) {
@@ -142,9 +109,7 @@ class _ReportPageState
       ScaffoldMessenger.of(context)
           .showSnackBar(
         SnackBar(
-          content:
-              Text(
-            e.toString(),
+          content: Text( e.toString(),
           ),
         ),
       );
@@ -158,7 +123,6 @@ class _ReportPageState
   @override
   void dispose() {
     descriptionController.dispose();
-
     super.dispose();
   }
   @override
@@ -223,7 +187,6 @@ class _ReportPageState
                 value:  risk,
                 decoration:
                     InputDecoration(
-
                   labelText:"Risk Level",
                   border:OutlineInputBorder(
                     borderRadius:
@@ -290,28 +253,18 @@ class _ReportPageState
 
               const SizedBox(
                   height: 30),
-
               SizedBox(
-
-                height:
-                    55,
-
-                child:
-                    ElevatedButton(
-
+                height:55,
+                child:ElevatedButton(
                   onPressed:
-                      loading
-                          ? null
-                          : submitReport,
+                      loading ? null: submitReport,
                   child:
                       loading
                           ? const CircularProgressIndicator()
                           : const Text( "Submit Report",
-                              style:
-                                  TextStyle(
-                                fontSize:
-                                    18,
-                              ),
+                              style: TextStyle(
+                                fontSize:18,
+                                ),
                             ),
                 ),
               ),

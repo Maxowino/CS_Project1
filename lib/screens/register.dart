@@ -27,8 +27,7 @@ class _RegisterPageState
 
   bool _obscurePassword = true;
 
-  bool _obscureConfirmPassword =
-      true;
+  bool _obscureConfirmPassword = true;
 
   bool _loading = false;
 
@@ -51,44 +50,25 @@ class _RegisterPageState
     });
 
     String? result =
-        await AuthService()
-            .register(
-      email:
-          _emailController.text
-              .trim(),
-
-      password:
-          _passwordController
-              .text
-              .trim(),
+        await AuthService().register(
+      email:_emailController.text.trim(),
+      password:_passwordController.text.trim(),
     );
 
     setState(() {
       _loading = false;
     });
-
     if (!mounted) return;
-
     if (result == null) {
-
       Navigator.pushReplacement(
         context,
-
-        MaterialPageRoute(
-          builder:
-              (_) =>
-                  const VerifyEmailPage(),
+        MaterialPageRoute(builder:(_) =>const VerifyEmailPage(),
         ),
       );
-
     } else {
-
-      ScaffoldMessenger.of(
-              context)
-          .showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text(result),
+          content:Text(result),
         ),
       );
     }
@@ -97,77 +77,35 @@ class _RegisterPageState
   @override
   Widget build(
       BuildContext context) {
-
     return Padding(
       padding:
-          const EdgeInsets.all(
-              24),
-
-      child:
-          SingleChildScrollView(
-
+          const EdgeInsets.all(24),
+      child: SingleChildScrollView(
         child: Form(
-
           key: _formKey,
-
           child: Column(
-
             children: [
-
-              const SizedBox(
-                  height: 20),
-
-              const Text(
-                "Create Account",
-
-                style:
-                    TextStyle(
+              const SizedBox(height: 20),
+              const Text("Create Account",
+                style:TextStyle(
                   fontSize: 28,
-                  fontWeight:
-                      FontWeight
-                          .bold,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-
-              const SizedBox(
-                  height: 35),
-
+              const SizedBox(height: 35),
               TextFormField(
-
-                controller:
-                    _emailController,
-
-                keyboardType:
-                    TextInputType
-                        .emailAddress,
-
-                decoration:
-                    InputDecoration(
-
-                  labelText:
-                      "Email",
-
-                  prefixIcon:
-                      const Icon(
-                    Icons.email,
-                  ),
-
-                  border:
-                      OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius
-                            .circular(
-                                15),
+                controller:_emailController,
+                keyboardType:TextInputType.emailAddress,
+                decoration:InputDecoration(
+                  labelText:"Email",
+                  prefixIcon:const Icon(Icons.email,),
+                  border:OutlineInputBorder(
+                    borderRadius:BorderRadius.circular(15),
                   ),
                 ),
-
-                validator:
-                    (value) {
-
-                  if (value ==
-                          null ||
-                      value
-                          .isEmpty) {
+                validator:(value) {
+                  if (value == null ||
+                      value.isEmpty) {
                     return "Enter email";
                   }
 
@@ -179,136 +117,77 @@ class _RegisterPageState
 
                   return null;
                 },
-              ),
+              ),// email validation
 
-              const SizedBox(
-                  height: 18),
-
+              const SizedBox(height: 18),
               TextFormField(
-
-                controller:
-                    _passwordController,
-
-                obscureText:
-                    _obscurePassword,
-
-                decoration:
-                    InputDecoration(
-
-                  labelText:
-                      "Password",
-
-                  prefixIcon:
-                      const Icon(
-                    Icons.lock,
-                  ),
-
+                controller:_passwordController,
+                obscureText:_obscurePassword,
+                decoration:InputDecoration(
+                  labelText:"Password",
+                  prefixIcon:const Icon(Icons.lock,),
                   border:
                       OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius
-                            .circular(
-                                15),
+                    borderRadius: BorderRadius.circular(15),
                   ),
-
                   suffixIcon:
                       IconButton(
+                    icon:Icon(
+                      _obscurePassword? Icons.visibility_off: Icons.visibility,
+                    ), 
 
-                    icon:
-                        Icon(
-
-                      _obscurePassword
-                          ? Icons
-                              .visibility_off
-                          : Icons
-                              .visibility,
-                    ),
-
-                    onPressed:
-                        () {
-
-                      setState(
-                          () {
-
-                        _obscurePassword =
-                            !_obscurePassword;
-
+                    onPressed:() {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
                       });
-                    },
+                    }, /// toggles visibility 
                   ),
                 ),
 
                 validator:
                     (value) {
 
-                  if (value ==
-                          null ||
-                      value
-                          .isEmpty) {
+                  if (value == null ||
+                      value.isEmpty) {
                     return "Enter password";
                   }
 
-                  if (value
-                          .length <
-                      6) {
-                    return "Minimum 6 characters";
-                  }
-
+                  if (value.length <6) 
+                  {return "Minimum 6 characters"; }
                   return null;
                 },
               ),
-
               const SizedBox(
                   height: 18),
-
               TextFormField(
 
-                controller:
-                    _confirmPasswordController,
-
-                obscureText:
-                    _obscureConfirmPassword,
-
+                controller: _confirmPasswordController,
+                obscureText:_obscureConfirmPassword,
                 decoration:
                     InputDecoration(
-
-                  labelText:
-                      "Confirm Password",
-
+                  labelText:"Confirm Password",
                   prefixIcon:
-                      const Icon(
-                    Icons.lock,
+                      const Icon(Icons.lock,
                   ),
 
                   border:
                       OutlineInputBorder(
                     borderRadius:
-                        BorderRadius
-                            .circular(
-                                15),
+                        BorderRadius.circular(15),
                   ),
 
                   suffixIcon:
                       IconButton(
-
                     icon:
                         Icon(
-
-                      _obscureConfirmPassword
-                          ? Icons
-                              .visibility_off
-                          : Icons
-                              .visibility,
+                      _obscureConfirmPassword? Icons.visibility_off: Icons.visibility,
                     ),
-
                     onPressed:
                         () {
-
                       setState(
                           () {
 
-                        _obscureConfirmPassword =
-                            !_obscureConfirmPassword;
+                        _obscureConfirmPassword =!_obscureConfirmPassword;
 
                       });
                     },
@@ -317,17 +196,12 @@ class _RegisterPageState
 
                 validator:
                     (value) {
-
-                  if (value ==
-                          null ||
-                      value
-                          .isEmpty) {
+                  if (value == null ||
+                      value.isEmpty) {
                     return "Confirm password";
                   }
 
-                  if (value !=
-                      _passwordController
-                          .text) {
+                  if (value !=_passwordController.text) {
                     return "Passwords do not match";
                   }
 
@@ -340,14 +214,10 @@ class _RegisterPageState
 
               SizedBox(
 
-                width:
-                    double.infinity,
-
+                width:double.infinity,
                 height: 55,
-
                 child:
                     ElevatedButton(
-
                   onPressed:
                       _loading
                           ? null
@@ -357,48 +227,30 @@ class _RegisterPageState
                       _loading
 
                           ? const SizedBox(
-                              width:
-                                  22,
-                              height:
-                                  22,
-
+                              width:22,
+                              height:22,
                               child:
-                                  CircularProgressIndicator(
-                                strokeWidth:
-                                    3,
+                                  CircularProgressIndicator(strokeWidth:3,
                               ),
                             )
 
                           : const Text(
                               "Register",
-
                               style:
                                   TextStyle(
-                                fontSize:
-                                    18,
+                                fontSize:18,
                               ),
                             ),
                 ),
               ),
 
-              const SizedBox(
-                  height: 15),
-
+              const SizedBox(height: 15),
               TextButton(
-
                 onPressed:
                     () {
-
-                  DefaultTabController
-                      .of(
-                          context)
-                      .animateTo(
-                          0);
-
+                  DefaultTabController .of(context).animateTo(0);
                 },
-
-                child:
-                    const Text(
+                child:const Text(
                   "Already have an account? Login",
                 ),
               ),
