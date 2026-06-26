@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cs_project_1/screens/selectAction.dart';
+import 'package:cs_project_1/screens/user_reports.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cs_project_1/screens/report.dart';
@@ -378,13 +379,48 @@ fontSize: 16,
 ListTile(
 
 leading:
+const Icon(
+Icons.history,
+),
 
+title:
+const Text(
+"My Reports",
+),
+
+onTap:
+(){
+
+Navigator.pop(
+context,
+);
+
+Navigator.push(
+
+context,
+
+MaterialPageRoute(
+
+builder:
+(_)=>
+const MyReportsPage(),
+
+),
+
+);
+
+},
+
+),
+
+ListTile(
+
+leading:
 const Icon(
 Icons.logout,
 ),
 
 title:
-
 const Text(
 "Logout",
 ),
@@ -411,8 +447,7 @@ context,
 MaterialPageRoute(
 
 builder:
-(context)
-=>
+(context)=>
 const selectAction(),
 
 ),
@@ -424,19 +459,12 @@ const selectAction(),
 },
 
 ),
-
-],
-
-),
-
-),
-
+           ],
+           ),
+         ),
 appBar:
-
 AppBar(
-
 title:
-
 const Text(
 "Flood Alert",
 ),
