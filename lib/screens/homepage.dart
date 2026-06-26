@@ -50,8 +50,7 @@ super.initState();
 loadLocation();
 }
 
-Future<void>
-loadLocation()
+Future<void> loadLocation()
 async {
 
 bool enabled =
@@ -102,15 +101,15 @@ color: Colors.blue,
 
 );
 
-await loadReports();
-
-await loadWeather();
-
-startWeatherUpdates();
-
+// SHOW UI IMMEDIATELY
 setState(() {
 loading = false;
 });
+
+// LOAD IN BACKGROUND
+loadReports();
+loadWeather();
+startWeatherUpdates();
 
 }
 
@@ -193,21 +192,11 @@ context,
 }
 void startWeatherUpdates() {
 
-weatherTimer =
-
-Timer.periodic(
-
-const Duration(
-seconds: 30,
-),
-
+weatherTimer = Timer.periodic(const Duration(seconds: 30,),
 (_){
-
 loadWeather();
-
 },
-
-);
+);// weather update timer 
 
 }
 
@@ -314,6 +303,9 @@ size: 35,
 
 );
 
+}
+if (mounted) {
+setState(() {});
 }
 
 }
@@ -625,10 +617,10 @@ weatherText,
 subtitle:
 
 Text(
-"Rainfall: $rainfall mm",
-),
+"Rainfall: $rainfall mm\nUpdated: $updatedAt",
+),// referesh visual for weather 
 
-),// icons changning according to rain
+),// icons changning according to rain 
 
 ),
 
@@ -700,6 +692,14 @@ label:
 ),
 
 );
+
+}
+@override
+void dispose() {
+
+weatherTimer?.cancel();
+
+super.dispose();
 
 }
 
