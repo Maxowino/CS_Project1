@@ -4,339 +4,564 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cs_project_1/screens/report.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
   @override
-  State<HomePage> createState() =>_HomePageState();
+  State<HomePage> createState() =>
+      _HomePageState();
 }
+
 class _HomePageState
-    extends State<HomePage> {
-  Position? currentPosition;
-  bool loading = true;
-  final List<Marker>
-      markers = [];
+extends State<HomePage> {
 
-  @override
-  void initState() {
-    super.initState();
-    loadLocation();
-  }
+Position? currentPosition;
 
-  Future<void> loadLocation()
-      async {
+bool loading = true;
 
-    bool enabled =
-        await Geolocator
-            .isLocationServiceEnabled();
+final List<Marker>
+markers = [];
 
-    if (!enabled) return;
+// NEW
+final List<CircleMarker>
+floodZones = [];
 
-    LocationPermission permission =
-        await Geolocator
-            .requestPermission();
+// NEW
+final String weatherApiKey =
+"ce47457684530fc0a07ff38178efe5cc";
 
-    if (permission ==
-        LocationPermission.denied) {
-      return;
-    }
+@override
+void initState() {
+super.initState();
+loadLocation();
+}
 
-    currentPosition =
-        await Geolocator
-            .getCurrentPosition();
+Future<void> loadLocation()
+async {
 
-    markers.add(
-      Marker(
-        point: LatLng(
-          currentPosition!.latitude,
-          currentPosition!
-              .longitude,
-        ),
+bool enabled =
+await Geolocator
+.isLocationServiceEnabled();
 
-        width: 60,
-        height: 60,
-        child: const Icon(
-          Icons.my_location,
-          size: 40,
-          color: Colors.blue,
-        ),
-      ),
-    );
+if (!enabled) return;
 
-    await loadReports();
-    setState(() {
-      loading = false;
-    });
-  }
+LocationPermission permission =
+await Geolocator
+.requestPermission();
 
-  Future<void>
-      loadReports() async {
+if (permission ==
+LocationPermission.denied) {
+return;
+}
 
-    var reports =
-        await FirebaseFirestore .instance.collection(
-                "flood_reports").get();
+currentPosition =
+await Geolocator
+.getCurrentPosition();
 
-    for (var report
-        in reports.docs) {
+markers.add(
 
-      markers.add(
+Marker(
 
-        Marker(
-
-          point: LatLng(
-            report["lat"],
-            report["lng"],
-          ),
-
-          width: 50,
-
-          height: 50,
-
-          child: const Icon(
-            Icons.warning,
-            color: Colors.red,
-            size: 35,
-          ),
-        ),
-      );
-    }
-  }
-
-  @override
-  Widget build(
-      BuildContext context) {
-
-    return Scaffold(
-
-      drawer: Drawer(
-
-        child: Column(
-
-          children: [
-
-            DrawerHeader(
-             child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                const Icon(Icons.person,size: 60,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                FirebaseAuth.instance.currentUser?.email ?? "No Email",
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-               fontSize: 16,
-        ),
-      ),
-    ],
-  ),
+point:
+LatLng(
+currentPosition!.latitude,
+currentPosition!.longitude,
 ),
 
-            ListTile(
+width: 60,
 
-              leading:
-                  const Icon(Icons.logout,
-              ),
+height: 60,
 
-              title:
-                  const Text("Logout",
-              ),
+child:
+const Icon(
+Icons.my_location,
+size: 40,
+color: Colors.blue,
+),
 
-             onTap: () async {
-              Navigator.pop(context); // close drawer
+),
 
-              await FirebaseAuth.instance.signOut();
-              if (!mounted) return;
-              Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (context) => const selectAction()),
-              (route) => false,
-               );
-             } //logout func
-            )
-          ],
-        ),
-      ),
+);
 
-      appBar: AppBar(
+await loadReports();
 
-        title:
-            const Text(
-          "Flood Alert",
-        ),
+setState(() {
+loading = false;
+});
+}
 
-        centerTitle: true,
-      ),
+Future<void>
+loadReports() async {
 
-      body: loading
+var reports =
+await FirebaseFirestore
+.instance
+.collection(
+"flood_reports",
+)
+.get();
 
-          ? const Center(
-              child:
-                  CircularProgressIndicator(),
-            )
+for (
+var report
+in reports.docs
+) {
 
-          : Column(
+double severity =
+(report["severity"] ?? 1)
+.toDouble();
 
-              children: [
+Color zoneColor =
+severity >= 3
+? Colors.red.withOpacity(0.35)
+: severity == 2
+? Colors.orange.withOpacity(0.30)
+: Colors.yellow.withOpacity(0.25);
 
-                Container(
+// NEW FLOOD ZONES
+floodZones.add(
 
-                  width:
-                      double.infinity,
+CircleMarker(
 
-                  padding:
-                      const EdgeInsets
-                          .all(
-                              15),
+point:
+LatLng(
+report["lat"],
+report["lng"],
+),
 
-                  color:
-                      Colors.orange,
+radius:
+severity *
+300,
 
-                  child:
-                      const Column(
+useRadiusInMeter:
+true,
 
-                    children: [
+color:
+zoneColor,
 
-                      Text(
-                        "Current Risk",
-                        style:
-                            TextStyle(
-                          color:
-                              Colors.white,
-                        ),
-                      ),
+borderColor:
+Colors.red,
 
-                      Text(
-                        "LOW",
-                        style:
-                            TextStyle(
-                          fontSize:
-                              22,
+borderStrokeWidth:
+2,
 
-                          color:
-                              Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+),
 
-                Expanded(
+);
 
-                  child:
-                      FlutterMap(
+// ORIGINAL MARKER
+markers.add(
 
-                    options:
-                        MapOptions(
+Marker(
 
-                      initialCenter:
-                          LatLng(
-                        currentPosition!
-                            .latitude,
+point:
+LatLng(
+report["lat"],
+report["lng"],
+),
 
-                        currentPosition!
-                            .longitude,
-                      ),
+width: 50,
 
-                      initialZoom:
-                          15,
-                    ),
+height: 50,
 
-                    children: [
+child:
+Icon(
 
-                      TileLayer(
+Icons.warning,
 
-                        urlTemplate:
+color:
+severity >= 3
+? Colors.red
+: severity == 2
+? Colors.orange
+: Colors.yellow,
 
-                            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                      ),
-                      MarkerLayer(
-                        markers:
-                            markers,
-                      ),
-                    ],
-                  ),
-                ),
+size: 35,
 
-                Card(
+),
 
-                  margin:
-                      const EdgeInsets
-                          .all(
-                              12),
+),
 
-                  child:
-                      const ListTile(
+);
 
-                    leading:
-                        Icon(
-                      Icons.cloud,
-                    ),
+}
+}
 
-                    title:
-                        Text(
-                      "Weather",
-                    ),
+@override
+Widget build(
+BuildContext context,
+) {
 
-                    // subtitle:
-                    //     Text(
-                    //   "Weather API coming next",
-                    // ),
-                  ),
-                ),
-              ],
-            ),
+return Scaffold(
 
-    //  floatingActionButton:
+drawer:
+Drawer(
 
-    //     FloatingActionButton(
-    //         child:const Icon(Icons.add_location,),
-    //         onPressed: () {
-    //         Navigator.push(
-    //           context,MaterialPageRoute(
-    //               builder: (context) =>
-    //                const ReportPage(),
+child:
+Column(
 
-    //              ),
-    //            );
-    //       },
-    //     ),
-     bottomNavigationBar: BottomNavigationBar(
+children: [
 
-currentIndex: 0,
+DrawerHeader(
 
-onTap: (index) {
+child:
+Column(
 
-if (index == 1) {
+mainAxisAlignment:
+MainAxisAlignment.center,
+
+children: [
+
+const Icon(
+Icons.person,
+size: 60,
+),
+
+const SizedBox(
+height: 10,
+),
+
+Text(
+
+FirebaseAuth
+.instance
+.currentUser
+?.email
+??
+"No Email",
+
+textAlign:
+TextAlign.center,
+
+style:
+const TextStyle(
+fontSize: 16,
+),
+
+),
+
+],
+
+),
+
+),
+
+ListTile(
+
+leading:
+const Icon(
+Icons.logout,
+),
+
+title:
+const Text(
+"Logout",
+),
+
+onTap:
+() async {
+
+Navigator.pop(
+context,
+);
+
+await FirebaseAuth
+.instance
+.signOut();
+
+if (!mounted)
+return;
+
+Navigator.pushAndRemoveUntil(
+
+context,
+
+MaterialPageRoute(
+
+builder:
+(context)
+=>
+const selectAction(),
+
+),
+
+(route)=>false,
+
+);
+
+},
+
+),
+
+],
+
+),
+
+),
+
+appBar:
+AppBar(
+
+title:
+const Text(
+"Flood Alert",
+),
+
+centerTitle:
+true,
+
+),
+
+body:
+
+loading
+
+?
+
+const Center(
+
+child:
+CircularProgressIndicator(),
+
+)
+
+:
+
+Column(
+
+children: [
+
+Container(
+
+width:
+double.infinity,
+
+padding:
+const EdgeInsets.all(
+15,
+),
+
+color:
+Colors.orange,
+
+child:
+
+const Column(
+
+children: [
+
+Text(
+
+"Current Risk",
+
+style:
+TextStyle(
+color:
+Colors.white,
+),
+
+),
+
+Text(
+
+"LOW",
+
+style:
+TextStyle(
+
+fontSize:
+22,
+
+color:
+Colors.white,
+
+),
+
+),
+
+],
+
+),
+
+),
+
+Expanded(
+
+child:
+
+FlutterMap(
+
+options:
+
+MapOptions(
+
+initialCenter:
+
+LatLng(
+
+currentPosition!
+.latitude,
+
+currentPosition!
+.longitude,
+
+),
+
+initialZoom:
+15,
+
+),
+
+children: [
+
+TileLayer(
+
+urlTemplate:
+
+"https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+
+tileProvider:
+CancellableNetworkTileProvider(),
+
+),
+
+// NEW WEATHER Api 
+
+Opacity(
+
+opacity: 0.45,
+
+child:
+TileLayer(
+
+urlTemplate:
+"https://maps.openweathermap.org/maps/2.0/weather/PA0/{z}/{x}/{y}?appid=$weatherApiKey",
+
+),
+
+),
+
+// NEW FLOOD VISUAL
+
+CircleLayer(
+
+circles:
+floodZones,
+
+),
+
+MarkerLayer(
+
+markers:
+markers,
+
+),
+
+],
+
+),
+
+),
+
+Card(
+
+margin:
+const EdgeInsets.all(
+12,
+),
+
+child:
+
+const ListTile(
+
+leading:
+Icon(
+Icons.cloud,
+),
+
+title:
+Text(
+"Live Rain + Flood Zones",
+),
+
+subtitle:
+Text(
+"Blue = Rain | Red = Flood Risk",
+),
+
+),
+
+),
+
+],
+
+),
+
+bottomNavigationBar:
+
+BottomNavigationBar(
+
+currentIndex:
+0,
+
+onTap:
+(index) {
+
+if (
+index == 1
+) {
 
 Navigator.push(
+
 context,
+
 MaterialPageRoute(
-builder: (_) =>
+
+builder:
+(_)
+=>
 const ReportPage(),
+
+),
+
+);
+
+}
+
+},
+
+items:
+
+const [
+
+BottomNavigationBarItem(
+
+icon:
+Icon(
+Icons.map,
+),
+
+label:
+"Map",
+
+),
+
+BottomNavigationBarItem(
+
+icon:
+Icon(
+Icons.add_location,
+),
+
+label:
+"Report",
+
+),
+],
 ),
 );
 }
-  //      if (index == 2) {
-  //        Navigator.push(context,
-  //       MaterialPageRoute(
-  //            builder: (_) => const ProfilePage(),
-  //        ),
-  //        );
-  //      }
-   },
-        items: const [
-             BottomNavigationBarItem(
-               icon:Icon(Icons.map,),
-               label:"Map",
-               ),
-             BottomNavigationBarItem(
-              icon:Icon(Icons.add_location,),
-               label:"Report",),
-             
-                ],
-             ),
-    );
-  }
 }
