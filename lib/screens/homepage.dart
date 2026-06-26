@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cs_project_1/screens/selectAction.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,6 +10,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -26,13 +30,19 @@ bool loading = true;
 final List<Marker>
 markers = [];
 
-// NEW
 final List<CircleMarker>
 floodZones = [];
 
-// NEW
-final String weatherApiKey =
-"ce47457684530fc0a07ff38178efe5cc";
+// WEATHER
+double rainfall = 0;
+
+String weatherText =
+"Loading...";
+
+String updatedAt =
+"--";
+
+Timer? weatherTimer;
 
 @override
 void initState() {
@@ -40,7 +50,8 @@ super.initState();
 loadLocation();
 }
 
-Future<void> loadLocation()
+Future<void>
+loadLocation()
 async {
 
 bool enabled =
@@ -53,8 +64,10 @@ LocationPermission permission =
 await Geolocator
 .requestPermission();
 
-if (permission ==
-LocationPermission.denied) {
+if (
+permission ==
+LocationPermission.denied
+) {
 return;
 }
 
@@ -67,6 +80,7 @@ markers.add(
 Marker(
 
 point:
+
 LatLng(
 currentPosition!.latitude,
 currentPosition!.longitude,
@@ -77,6 +91,7 @@ width: 60,
 height: 60,
 
 child:
+
 const Icon(
 Icons.my_location,
 size: 40,
@@ -89,15 +104,120 @@ color: Colors.blue,
 
 await loadReports();
 
+await loadWeather();
+
+startWeatherUpdates();
+
 setState(() {
 loading = false;
 });
+
 }
 
+Future<void> loadWeather()
+async {
+
+if (
+currentPosition == null
+) return;
+
+final url =
+Uri.parse(
+
+"https://api.open-meteo.com/v1/forecast"
+"?latitude=${currentPosition!.latitude}"
+"&longitude=${currentPosition!.longitude}"
+"&current=rain"
+
+);
+
+final response =
+await http.get(
+url,
+);
+
+if (
+response.statusCode ==
+200
+) {
+
+final data =
+jsonDecode(
+response.body,
+);
+
+if (!mounted) return;
+
+setState(() {
+
+rainfall =
+(data["current"]["rain"]
+?? 0)
+.toDouble();
+
+if (
+rainfall == 0
+) {
+
+weatherText =
+"No Rain";
+
+}
+
+else if (
+rainfall < 5
+) {
+
+weatherText =
+"Light Rain";
+
+}
+
+else {
+
+weatherText =
+"Heavy Rain";
+
+}
+
+updatedAt =
+TimeOfDay
+.now()
+.format(
+context,
+);
+
+});
+
+}
+}
+void startWeatherUpdates() {
+
+weatherTimer =
+
+Timer.periodic(
+
+const Duration(
+seconds: 30,
+),
+
+(_){
+
+loadWeather();
+
+},
+
+);
+
+}
+
+
 Future<void>
-loadReports() async {
+loadReports()
+async {
 
 var reports =
+
 await FirebaseFirestore
 .instance
 .collection(
@@ -111,22 +231,23 @@ in reports.docs
 ) {
 
 double severity =
-(report["severity"] ?? 1)
-.toDouble();
 
-Color zoneColor =
-severity >= 3
-? Colors.red.withOpacity(0.35)
-: severity == 2
-? Colors.orange.withOpacity(0.30)
-: Colors.yellow.withOpacity(0.25);
+(report["severity"]?? 1).toDouble();
 
-// NEW FLOOD ZONES
+Color zoneColor =severity >= 3? Colors.red.withOpacity(0.35,)
+
+  : severity == 2? Colors.orange.withOpacity(0.30,)
+
+: Colors.yellow.withOpacity(
+0.25,
+);
+
 floodZones.add(
 
 CircleMarker(
 
 point:
+
 LatLng(
 report["lat"],
 report["lng"],
@@ -152,12 +273,12 @@ borderStrokeWidth:
 
 );
 
-// ORIGINAL MARKER
 markers.add(
 
 Marker(
 
 point:
+
 LatLng(
 report["lat"],
 report["lng"],
@@ -168,15 +289,21 @@ width: 50,
 height: 50,
 
 child:
+
 Icon(
 
 Icons.warning,
 
 color:
+
 severity >= 3
+
 ? Colors.red
+
 : severity == 2
+
 ? Colors.orange
+
 : Colors.yellow,
 
 size: 35,
@@ -188,6 +315,7 @@ size: 35,
 );
 
 }
+
 }
 
 @override
@@ -198,9 +326,11 @@ BuildContext context,
 return Scaffold(
 
 drawer:
+
 Drawer(
 
 child:
+
 Column(
 
 children: [
@@ -208,6 +338,7 @@ children: [
 DrawerHeader(
 
 child:
+
 Column(
 
 mainAxisAlignment:
@@ -230,13 +361,16 @@ FirebaseAuth
 .instance
 .currentUser
 ?.email
+
 ??
+
 "No Email",
 
 textAlign:
 TextAlign.center,
 
 style:
+
 const TextStyle(
 fontSize: 16,
 ),
@@ -252,11 +386,13 @@ fontSize: 16,
 ListTile(
 
 leading:
+
 const Icon(
 Icons.logout,
 ),
 
 title:
+
 const Text(
 "Logout",
 ),
@@ -272,8 +408,9 @@ await FirebaseAuth
 .instance
 .signOut();
 
-if (!mounted)
-return;
+if (
+!mounted
+) return;
 
 Navigator.pushAndRemoveUntil(
 
@@ -303,9 +440,11 @@ const selectAction(),
 ),
 
 appBar:
+
 AppBar(
 
 title:
+
 const Text(
 "Flood Alert",
 ),
@@ -340,7 +479,9 @@ width:
 double.infinity,
 
 padding:
-const EdgeInsets.all(
+
+const EdgeInsets
+.all(
 15,
 ),
 
@@ -358,6 +499,7 @@ Text(
 "Current Risk",
 
 style:
+
 TextStyle(
 color:
 Colors.white,
@@ -370,6 +512,7 @@ Text(
 "LOW",
 
 style:
+
 TextStyle(
 
 fontSize:
@@ -424,27 +567,10 @@ urlTemplate:
 "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
 
 tileProvider:
+
 CancellableNetworkTileProvider(),
 
 ),
-
-// NEW WEATHER Api 
-
-Opacity(
-
-opacity: 0.45,
-
-child:
-TileLayer(
-
-urlTemplate:
-"https://maps.openweathermap.org/maps/2.0/weather/PA0/{z}/{x}/{y}?appid=$weatherApiKey",
-
-),
-
-),
-
-// NEW FLOOD VISUAL
 
 CircleLayer(
 
@@ -469,30 +595,40 @@ markers,
 Card(
 
 margin:
-const EdgeInsets.all(
+
+const EdgeInsets
+.all(
 12,
 ),
 
 child:
 
-const ListTile(
-
+ListTile(
 leading:
-Icon(
-Icons.cloud,
+Icon(rainfall > 5? Icons.thunderstorm
+   : rainfall > 0? Icons.cloud
+   : Icons.wb_sunny,
+color:
+rainfall > 5? Colors.red
+
+: rainfall > 0? Colors.blue
+: Colors.orange,
+
 ),
 
 title:
+
 Text(
-"Live Rain + Flood Zones",
+weatherText,
 ),
 
 subtitle:
+
 Text(
-"Blue = Rain | Red = Flood Risk",
+"Rainfall: $rainfall mm",
 ),
 
-),
+),// icons changning according to rain
 
 ),
 
@@ -508,11 +644,11 @@ currentIndex:
 0,
 
 onTap:
-(index) {
+(index){
 
-if (
-index == 1
-) {
+if(
+index==1
+){
 
 Navigator.push(
 
@@ -562,6 +698,9 @@ label:
 ),
 ],
 ),
+
 );
+
 }
+
 }
