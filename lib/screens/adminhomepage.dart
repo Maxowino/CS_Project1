@@ -1,9 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cs_project_1/screens/adminuser.dart';
 import 'package:cs_project_1/screens/allreports.dart';
 import 'package:cs_project_1/screens/flaggedreports.dart';
+import 'package:cs_project_1/screens/selectAction.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
 class AdminHomePage extends StatefulWidget {
-  const AdminHomePage({super.key});
+  const AdminHomePage({
+    super.key,
+  });
 
   @override
   State<AdminHomePage> createState() =>
@@ -30,82 +36,85 @@ class _AdminHomePageState
     loadDashboard();
   }
 
-  Future<void>
-      loadDashboard() async {
+ Future<void> loadDashboard() async {
 
-    setState(() {
-      loading = true;
-    });
+if (!mounted) return;
 
-    try {
+setState(() {
+loading = true;
+});
 
-      final usersSnap =
-          await FirebaseFirestore
-              .instance
-              .collection(
-                  "users")
-              .get();
+try {
 
-      final reportsSnap =
-          await FirebaseFirestore
-              .instance
-              .collection(
-                  "flood_reports")
-              .get();
+final usersSnap =
+await FirebaseFirestore
+.instance
+.collection("users")
+.get();
 
-      int flaggedCount = 0;
+final reportsSnap =
+await FirebaseFirestore
+.instance
+.collection("flood_reports")
+.get();
 
-      for (var report
-          in reportsSnap.docs) {
+int flaggedCount = 0;
 
-        final data =
-            report.data();
+// count flagged safely
+for (var report in reportsSnap.docs) {
 
-        if (
-            data.containsKey(
-                    "verified") &&
-                data[
-                        "verified"] ==
-                    false) {
-          flaggedCount++;
-        }
+final data =report.data();
 
-      }
+bool verified =
+data["verified"] ?? true;
 
-      recentReports =
-          reportsSnap.docs
-              .take(5)
-              .toList();
+if (!verified) {
+flaggedCount++;
+}
 
-      if (!mounted) return;
+}
 
-      setState(() {
+// latest reports first
+final latest =
+reportsSnap.docs.reversed
+.take(5)
+.toList();
 
-        users =
-            usersSnap.docs.length;
+if (!mounted) return;
 
-        reports =
-            reportsSnap.docs.length;
+setState(() {
 
-        flagged =
-            flaggedCount;
+users =
+usersSnap.docs.length;
 
-        loading =
-            false;
+reports =
+reportsSnap.docs.length;
 
-      });
+flagged =
+flaggedCount;
 
-    } catch (_) {
+recentReports =
+latest;
 
-      if (!mounted) return;
+loading = false;
 
-      setState(() {
-        loading = false;
-      });
+});
 
-    }
+} catch (e) {
 
-  }
+debugPrint(
+"Dashboard error: $e",
+);
+
+if (!mounted) return;
+
+setState(() {
+loading = false;
+});
+
+}
+
+}
 
   Widget statCard(
       IconData icon,
@@ -115,8 +124,7 @@ class _AdminHomePageState
 
     return Expanded(
 
-      child:
-          Card(
+      child: Card(
 
         elevation: 2,
 
@@ -129,31 +137,29 @@ class _AdminHomePageState
 
         ),
 
-        child:
-            Padding(
+        child: Padding(
 
           padding:
               const EdgeInsets
                   .all(18),
 
-          child:
-              Column(
+          child: Column(
 
             children: [
 
               Icon(
                 icon,
+                size: 34,
                 color:
                     color,
-                size:
-                    35,
               ),
 
               const SizedBox(
-                  height:
-                      10),
+                height: 10,
+              ),
 
               Text(
+
                 value,
 
                 style:
@@ -228,8 +234,7 @@ class _AdminHomePageState
           ),
 
           const SizedBox(
-              height:
-                  20),
+              height: 20),
 
           Row(
 
@@ -243,6 +248,10 @@ class _AdminHomePageState
                 Colors.black,
               ),
 
+              const SizedBox(
+                width: 10,
+              ),
+
               statCard(
                 Icons.warning,
                 "Reports",
@@ -254,6 +263,9 @@ class _AdminHomePageState
             ],
 
           ),
+
+          const SizedBox(
+              height: 10),
 
           Row(
 
@@ -272,8 +284,7 @@ class _AdminHomePageState
           ),
 
           const SizedBox(
-              height:
-                  30),
+              height: 30),
 
           const Text(
 
@@ -293,60 +304,90 @@ class _AdminHomePageState
           ),
 
           const SizedBox(
-              height:
-                  10),
+              height: 10),
 
-          ...recentReports.map(
+        ...recentReports.map((report) {
 
-            (report) {
+final data =
+report.data()
+as Map<String,dynamic>;
 
-              return Card(
+return Card(
 
-                child:
-                    ListTile(
+shape:
+RoundedRectangleBorder(
+borderRadius:
+BorderRadius.circular(16),
+),
 
-                  leading:
-                      const Icon(
-                    Icons.location_on,
-                  ),
+child:
 
-                  title:
-                      Text(
+ListTile(
 
-                    report[
-                            "email"] ??
-                        "",
+leading:
 
-                  ),
+const CircleAvatar(
+backgroundColor:
+Colors.black,
+child:
+Icon(
+Icons.location_on,
+color:
+Colors.white,
+),
+),
 
-                  subtitle:
-                      Text(
+title:
 
-                    report[
-                            "description"] ??
-                        "",
+Text(
+data["email"]
+?? "Unknown User",
+),
 
-                    maxLines:
-                        2,
+subtitle:
 
-                  ),
+Column(
 
-                  trailing:
-                      Text(
+crossAxisAlignment:
+CrossAxisAlignment.start,
 
-                    report[
-                            "risk"] ??
-                        "",
+children: [
 
-                  ),
+Text(
+data["description"]
+?? "No description",
+maxLines: 2,
+),
 
-                ),
+Text(
+"Risk: ${data["risk"] ?? "LOW"}",
+),
 
-              );
+],
 
-            },
+),
 
-          ),
+trailing:
+
+(data["verified"] ?? true)
+
+? const Icon(
+Icons.check_circle,
+color:
+Colors.green,
+)
+
+: const Icon(
+Icons.flag,
+color:
+Colors.red,
+),
+
+),
+
+);
+
+}),
 
         ],
 
@@ -363,32 +404,252 @@ class _AdminHomePageState
     final pages = [
 
       dashboard(),
+      const AdminUsersPage(),
       const AllReportsPage(),
       const FlaggedReportsPage(),
     ];
+
     return Scaffold(
+
+      drawer: Drawer(
+
+width: 230,
+
+child: Column(
+
+children: [
+
+SizedBox(
+
+height: 120,
+
+child:
+
+DrawerHeader(
+
+margin:
+EdgeInsets.zero,
+
+padding:
+const EdgeInsets.only(
+top: 10,
+left: 10,
+right: 10,
+),
+
+child:
+
+Column(
+
+mainAxisAlignment:
+MainAxisAlignment.center,
+
+children: [
+
+const CircleAvatar(
+
+radius: 24,
+
+backgroundColor:
+Colors.black,
+
+child:
+
+Icon(
+Icons.admin_panel_settings,
+size: 24,
+color:
+Colors.white,
+),
+
+),
+
+const SizedBox(
+height: 8,
+),
+
+const Text(
+
+"Admin",
+
+style:
+TextStyle(
+
+fontSize: 18,
+
+fontWeight:
+FontWeight.bold,
+
+),
+
+),
+
+const SizedBox(
+height: 4,
+),
+
+Flexible(
+
+child:
+
+Text(
+
+FirebaseAuth
+.instance
+.currentUser
+?.email
+
+??
+
+"",
+
+maxLines: 1,
+
+overflow:
+TextOverflow.ellipsis,
+
+textAlign:
+TextAlign.center,
+
+style:
+
+TextStyle(
+
+fontSize: 11,
+
+color:
+Colors.grey.shade600,
+
+),
+
+),
+
+),
+
+],
+
+),
+
+),
+
+),
+
+const Spacer(),
+
+ListTile(
+
+leading:
+
+const Icon(
+Icons.logout,
+color:
+Colors.red,
+),
+
+title:
+
+const Text(
+"Logout",
+),
+
+onTap:
+() async {
+
+await FirebaseAuth
+.instance
+.signOut();
+
+if (!context.mounted)
+return;
+
+Navigator.pushAndRemoveUntil(
+
+context,
+
+MaterialPageRoute(
+
+builder:
+(_)=>
+const selectAction(),
+
+),
+
+(route)=>false,
+
+);
+
+},
+
+),
+
+const SizedBox(
+height: 15,
+),
+
+],
+
+),
+
+),
+
       backgroundColor:
-          Colors.grey
-              .shade200,
+          Colors.grey.shade200,
+
       appBar:
+
           AppBar(
+
+        automaticallyImplyLeading:
+            false,
+
         title:
             const Text(
           "Admin Dashboard",
         ),
-        backgroundColor:
-            Colors.white,
-        foregroundColor:
-            Colors.black,
-        elevation:
-            0,
+
+        actions: [
+
+          Builder(
+
+            builder:
+                (context) {
+
+              return IconButton(
+
+                icon:
+                    const Icon(
+                  Icons.menu,
+                ),
+
+                onPressed:
+                    () {
+
+                  Scaffold.of(
+                          context)
+                      .openDrawer();
+
+                },
+
+              );
+
+            },
+
+          ),
+
+        ],
+
       ),
+
       body:
+
           IndexedStack(
+
         index:
             currentIndex,
+
         children:
             pages,
+
       ),
 
       bottomNavigationBar:
@@ -397,16 +658,6 @@ class _AdminHomePageState
 
         selectedIndex:
             currentIndex,
-
-        backgroundColor:
-            Colors.white,
-
-        indicatorColor:
-            Colors.black,
-
-        labelBehavior:
-            NavigationDestinationLabelBehavior
-                .alwaysShow,
 
         onDestinationSelected:
             (index) {
@@ -419,73 +670,55 @@ class _AdminHomePageState
           });
 
         },
+destinations: const [
 
-        destinations:
-            const [
+NavigationDestination(
 
-          NavigationDestination(
+icon:
+Icon(
+Icons.dashboard,
+),
 
-            icon:
-                Icon(
-              Icons.dashboard_outlined,
-            ),
+label:
+"Dashboard",
 
-            selectedIcon:
-                Icon(
-              Icons.dashboard,
-              color:
-                  Colors.white,
-            ),
+),
 
-            label:
-                "Dashboard",
+NavigationDestination(
 
-          ),
+icon:
+Icon(
+Icons.people,
+),
 
-          NavigationDestination(
+label:
+"Users",
 
-            icon:
-                Icon(
-              Icons.list_alt,
-            ),
+),
 
-            selectedIcon:
-                Icon(
-              Icons.list_alt,
-              color:
-                  Colors.white,
-            ),
+NavigationDestination(
 
-            label:
-                "Reports",
+icon:
+Icon(
+Icons.list_alt,
+),
 
-          ),
+label:
+"Reports",
 
-          NavigationDestination(
+),
 
-            icon:
-                Icon(
-              Icons.flag_outlined,
-            ),
+NavigationDestination(
 
-            selectedIcon:
-                Icon(
-              Icons.flag,
-              color:
-                  Colors.white,
-            ),
-
-            label:
-                "Flagged",
-
-          ),
-
-        ],
-
+icon:
+Icon(
+Icons.flag,
+),
+label:
+"Flagged",
+),
+],
       ),
-
     );
-
   }
-
 }
