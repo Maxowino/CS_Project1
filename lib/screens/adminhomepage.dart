@@ -1,114 +1,491 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cs_project_1/screens/allreports.dart';
+import 'package:cs_project_1/screens/flaggedreports.dart';
 import 'package:flutter/material.dart';
-
 class AdminHomePage extends StatefulWidget {
-  const AdminHomePage({Key? key}) : super(key: key);
+  const AdminHomePage({super.key});
 
   @override
-  State<AdminHomePage> createState() => _AdminHomePageState();
+  State<AdminHomePage> createState() =>
+      _AdminHomePageState();
 }
 
-class _AdminHomePageState extends State<AdminHomePage> {
-  List<Map<String, dynamic>> items = [
-    {'id': 1, 'name': 'Item 1', 'description': 'Description 1'},
-    {'id': 2, 'name': 'Item 2', 'description': 'Description 2'},
-    {'id': 3, 'name': 'Item 3', 'description': 'Description 3'},
-  ];
+class _AdminHomePageState
+    extends State<AdminHomePage> {
 
-  void deleteItem(int index) {
+  int currentIndex = 0;
+
+  int users = 0;
+  int reports = 0;
+  int flagged = 0;
+
+  bool loading = true;
+
+  List<QueryDocumentSnapshot>
+      recentReports = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadDashboard();
+  }
+
+  Future<void>
+      loadDashboard() async {
+
     setState(() {
-      items.removeAt(index);
+      loading = true;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Item deleted successfully')),
+
+    try {
+
+      final usersSnap =
+          await FirebaseFirestore
+              .instance
+              .collection(
+                  "users")
+              .get();
+
+      final reportsSnap =
+          await FirebaseFirestore
+              .instance
+              .collection(
+                  "flood_reports")
+              .get();
+
+      int flaggedCount = 0;
+
+      for (var report
+          in reportsSnap.docs) {
+
+        final data =
+            report.data();
+
+        if (
+            data.containsKey(
+                    "verified") &&
+                data[
+                        "verified"] ==
+                    false) {
+          flaggedCount++;
+        }
+
+      }
+
+      recentReports =
+          reportsSnap.docs
+              .take(5)
+              .toList();
+
+      if (!mounted) return;
+
+      setState(() {
+
+        users =
+            usersSnap.docs.length;
+
+        reports =
+            reportsSnap.docs.length;
+
+        flagged =
+            flaggedCount;
+
+        loading =
+            false;
+
+      });
+
+    } catch (_) {
+
+      if (!mounted) return;
+
+      setState(() {
+        loading = false;
+      });
+
+    }
+
+  }
+
+  Widget statCard(
+      IconData icon,
+      String title,
+      String value,
+      Color color) {
+
+    return Expanded(
+
+      child:
+          Card(
+
+        elevation: 2,
+
+        shape:
+            RoundedRectangleBorder(
+
+          borderRadius:
+              BorderRadius.circular(
+                  18),
+
+        ),
+
+        child:
+            Padding(
+
+          padding:
+              const EdgeInsets
+                  .all(18),
+
+          child:
+              Column(
+
+            children: [
+
+              Icon(
+                icon,
+                color:
+                    color,
+                size:
+                    35,
+              ),
+
+              const SizedBox(
+                  height:
+                      10),
+
+              Text(
+                value,
+
+                style:
+                    const TextStyle(
+
+                  fontSize:
+                      24,
+
+                  fontWeight:
+                      FontWeight.bold,
+
+                ),
+
+              ),
+
+              Text(
+                title,
+              ),
+
+            ],
+
+          ),
+
+        ),
+
+      ),
+
     );
+
+  }
+
+  Widget dashboard() {
+
+    if (loading) {
+
+      return const Center(
+        child:
+            CircularProgressIndicator(),
+      );
+
+    }
+
+    return RefreshIndicator(
+
+      onRefresh:
+          loadDashboard,
+
+      child:
+          ListView(
+
+        padding:
+            const EdgeInsets
+                .all(16),
+
+        children: [
+
+          const Text(
+
+            "Overview",
+
+            style:
+                TextStyle(
+
+              fontSize:
+                  28,
+
+              fontWeight:
+                  FontWeight.bold,
+
+            ),
+
+          ),
+
+          const SizedBox(
+              height:
+                  20),
+
+          Row(
+
+            children: [
+
+              statCard(
+                Icons.people,
+                "Users",
+                users
+                    .toString(),
+                Colors.black,
+              ),
+
+              statCard(
+                Icons.warning,
+                "Reports",
+                reports
+                    .toString(),
+                Colors.orange,
+              ),
+
+            ],
+
+          ),
+
+          Row(
+
+            children: [
+
+              statCard(
+                Icons.flag,
+                "Flagged",
+                flagged
+                    .toString(),
+                Colors.red,
+              ),
+
+            ],
+
+          ),
+
+          const SizedBox(
+              height:
+                  30),
+
+          const Text(
+
+            "Recent Reports",
+
+            style:
+                TextStyle(
+
+              fontSize:
+                  22,
+
+              fontWeight:
+                  FontWeight.bold,
+
+            ),
+
+          ),
+
+          const SizedBox(
+              height:
+                  10),
+
+          ...recentReports.map(
+
+            (report) {
+
+              return Card(
+
+                child:
+                    ListTile(
+
+                  leading:
+                      const Icon(
+                    Icons.location_on,
+                  ),
+
+                  title:
+                      Text(
+
+                    report[
+                            "email"] ??
+                        "",
+
+                  ),
+
+                  subtitle:
+                      Text(
+
+                    report[
+                            "description"] ??
+                        "",
+
+                    maxLines:
+                        2,
+
+                  ),
+
+                  trailing:
+                      Text(
+
+                    report[
+                            "risk"] ??
+                        "",
+
+                  ),
+
+                ),
+
+              );
+
+            },
+
+          ),
+
+        ],
+
+      ),
+
+    );
+
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+      BuildContext context) {
+
+    final pages = [
+
+      dashboard(),
+      const AllReportsPage(),
+      const FlaggedReportsPage(),
+    ];
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Admin Dashboard'),
-        centerTitle: true,
-        backgroundColor: Colors.blueAccent,
+      backgroundColor:
+          Colors.grey
+              .shade200,
+      appBar:
+          AppBar(
+        title:
+            const Text(
+          "Admin Dashboard",
+        ),
+        backgroundColor:
+            Colors.white,
+        foregroundColor:
+            Colors.black,
+        elevation:
+            0,
       ),
-      body: items.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.inbox, size: 80, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('No items found', style: TextStyle(fontSize: 18)),
-                ],
-              ),
-            )
-          : ListView.builder(
-              itemCount: items.length,
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      child: Text('${item['id']}'),
-                    ),
-                    title: Text(item['name']),
-                    subtitle: Text(item['description']),
-                    trailing: SizedBox(
-                      width: 100,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.visibility, color: Colors.blue),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text(item['name']),
-                                  content: Text(item['description']),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text('Close'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Delete Item'),
-                                  content: const Text('Are you sure you want to delete this item?'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        deleteItem(index);
-                                      },
-                                      child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
+      body:
+          IndexedStack(
+        index:
+            currentIndex,
+        children:
+            pages,
+      ),
+
+      bottomNavigationBar:
+
+          NavigationBar(
+
+        selectedIndex:
+            currentIndex,
+
+        backgroundColor:
+            Colors.white,
+
+        indicatorColor:
+            Colors.black,
+
+        labelBehavior:
+            NavigationDestinationLabelBehavior
+                .alwaysShow,
+
+        onDestinationSelected:
+            (index) {
+
+          setState(() {
+
+            currentIndex =
+                index;
+
+          });
+
+        },
+
+        destinations:
+            const [
+
+          NavigationDestination(
+
+            icon:
+                Icon(
+              Icons.dashboard_outlined,
             ),
+
+            selectedIcon:
+                Icon(
+              Icons.dashboard,
+              color:
+                  Colors.white,
+            ),
+
+            label:
+                "Dashboard",
+
+          ),
+
+          NavigationDestination(
+
+            icon:
+                Icon(
+              Icons.list_alt,
+            ),
+
+            selectedIcon:
+                Icon(
+              Icons.list_alt,
+              color:
+                  Colors.white,
+            ),
+
+            label:
+                "Reports",
+
+          ),
+
+          NavigationDestination(
+
+            icon:
+                Icon(
+              Icons.flag_outlined,
+            ),
+
+            selectedIcon:
+                Icon(
+              Icons.flag,
+              color:
+                  Colors.white,
+            ),
+
+            label:
+                "Flagged",
+
+          ),
+
+        ],
+
+      ),
+
     );
+
   }
+
 }
