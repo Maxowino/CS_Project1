@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ReportPage extends StatefulWidget {
   const ReportPage({super.key});
@@ -61,6 +63,107 @@ class _ReportPageState
 
     setState(() {});
   }
+  Future<Map<String, dynamic>>validateReport() async {
+  if (currentPosition == null) {
+   return {
+  "verified": true,
+  "flagReason": "",
+   "weatherRain": 0,
+};
+}
+
+double rainfall = 0;
+
+try {
+
+final url =
+Uri.parse(
+
+"https://api.open-meteo.com/v1/forecast"
+"?latitude=${currentPosition!.latitude}"
+"&longitude=${currentPosition!.longitude}"
+"&current=rain",
+
+);
+
+final response =await http.get(url).timeout(const Duration(seconds: 5,),
+);
+
+if (
+response.statusCode == 200
+) {
+
+final data =
+jsonDecode(
+response.body,
+);
+
+rainfall =
+
+(
+data["current"]["rain"]
+?? 0
+)
+
+.toDouble();
+
+}
+
+} catch (_) {
+  return {
+     "verified": true,
+     "flagReason":"Weather unavailable",
+    "weatherRain": 0,
+};// error handling users dont wait long for weather api to respond
+
+}
+
+bool verified = true;
+String reason = "";
+if (
+     rainfall == 0
+    &&
+(risk == "MEDIUM"
+||
+risk == "HIGH"
+)
+) {
+
+verified = false;
+reason ="No rainfall detected";
+}
+
+else if (
+  rainfall < 3
+&&
+risk == "HIGH"
+
+) {
+
+verified = false;
+reason ="Reported risk too high";
+}
+else if (
+rainfall >= 10
+&&
+risk == "LOW"
+
+) {
+
+verified = false;
+
+reason =
+"Reported risk lower than weather";
+
+}
+
+return {
+"verified":verified,
+"flagReason":reason,
+"weatherRain":rainfall,
+};
+
+}
 
   Future<void> submitReport() async {
 
@@ -85,14 +188,18 @@ class _ReportPageState
     try {
       User? user =
           FirebaseAuth.instance.currentUser;
-      await FirebaseFirestore.instance.collection("flood_reports").add({
-        "uid": user?.uid,
-        "email":user?.email,
-        "description": descriptionController.text.trim(),
-        "risk": risk,
-        "lat": currentPosition!.latitude,
-        "lng":currentPosition!.longitude,
-        "createdAt": Timestamp.now(),
+      final validation =await validateReport();
+      await FirebaseFirestore.instance.collection("flood_reports",).add({
+       "uid":user?.uid,
+       "email":user?.email,
+       "description":descriptionController.text.trim(),
+       "risk":risk,
+       "lat":currentPosition!.latitude,
+       "lng":currentPosition!.longitude,
+       "createdAt":Timestamp.now(),
+       "weatherRain":validation["weatherRain"],
+       "verified":validation["verified"],
+       "flagReason":validation["flagReason"],
       }); // ties the reports to users that submits it
 
       if (!mounted) return;
@@ -115,9 +222,8 @@ class _ReportPageState
       );
     }
 
-    setState(() {
-      loading = false;
-    });
+   if (mounted) {setState(() {loading = false;});
+}
   }
 
   @override

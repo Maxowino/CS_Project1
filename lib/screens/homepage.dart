@@ -21,8 +21,7 @@ class HomePage extends StatefulWidget {
       _HomePageState();
 }
 
-class _HomePageState
-extends State<HomePage> {
+class _HomePageState extends State<HomePage> {
 
 Position? currentPosition;
 
@@ -36,6 +35,13 @@ floodZones = [];
 
 // WEATHER
 double rainfall = 0;
+String riskLevel = "LOW";
+
+Color riskColor =
+Colors.green;
+
+bool alertSent =
+false;
 
 String weatherText =
 "Loading...";
@@ -108,196 +114,121 @@ loading = false;
 });
 
 // LOAD IN BACKGROUND
-loadReports();
-loadWeather();
+await loadWeather();
+await loadReports();
 startWeatherUpdates();
 
 }
 
-Future<void> loadWeather()
-async {
+Future<void> loadWeather() async {
 
-if (
-currentPosition == null
-) return;
+  if (currentPosition == null) return;
 
-final url =
-Uri.parse(
+  try {
 
-"https://api.open-meteo.com/v1/forecast"
-"?latitude=${currentPosition!.latitude}"
-"&longitude=${currentPosition!.longitude}"
-"&current=rain"
+    final url = Uri.parse(
+      "https://api.open-meteo.com/v1/forecast"
+      "?latitude=${currentPosition!.latitude}"
+      "&longitude=${currentPosition!.longitude}"
+      "&current=rain",
+    );
 
-);
+    final response =await http.get(url).timeout(const Duration(seconds: 5),);
+    if (response.statusCode != 200) return;
 
-final response =
-await http.get(
-url,
-);
-
-if (
-response.statusCode ==
-200
-) {
-
-final data =
-jsonDecode(
-response.body,
-);
-
-if (!mounted) return;
-
-setState(() {
-
-rainfall =
-(data["current"]["rain"]
-?? 0)
-.toDouble();
-
-if (
-rainfall == 0
-) {
-
-weatherText =
-"No Rain";
-
+    final data =
+        jsonDecode(response.body);
+    if (!mounted) return;
+    setState(() {
+      rainfall =
+          (data["current"]["rain"] ?? 0).toDouble();
+      updatedAt =TimeOfDay.now().format(context);
+      weatherText =
+          rainfall == 0? "No Rain"
+              : rainfall < 5? "Light Rain"
+              : "Heavy Rain";
+    });
+  } catch (e) {
+    debugPrint(
+      "Weather failed: $e",
+    );
+  }
 }
+bool refreshing = false;
 
-else if (
-rainfall < 5
-) {
-
-weatherText =
-"Light Rain";
-
-}
-
-else {
-
-weatherText =
-"Heavy Rain";
-
-}
-
-updatedAt =
-TimeOfDay
-.now()
-.format(
-context,
-);
-
-});
-
-}
-}
 void startWeatherUpdates() {
-
-weatherTimer = Timer.periodic(const Duration(seconds: 30,),
-(_){
-loadWeather();
-},
-);// weather update timer 
+  weatherTimer?.cancel();
+  weatherTimer = Timer.periodic(
+    const Duration(seconds: 30),(_) async {
+      if (refreshing) return;
+      refreshing = true;
+      try {
+        debugPrint(
+          "Updating weather...",
+        );
+        await loadWeather();
+        await loadReports();
+        await updateRisk();
+        if (mounted) {
+          setState(() {});
+        }
+      } catch (e) {
+        debugPrint(
+          "Timer error: $e",
+        );
+      } finally {
+        refreshing = false;
+      }
+    },
+  );
 
 }
+Future<void>loadReports()async {
+if (markers.length > 1) {
+markers.removeRange(1, markers.length);}// removes old markers to avoid duplicates
 
-
-Future<void>
-loadReports()
-async {
-
+floodZones.clear();
 var reports =
 
-await FirebaseFirestore
-.instance
-.collection(
-"flood_reports",
-)
-.get();
-
+await FirebaseFirestore.instance.collection("flood_reports",).get();
 for (
 var report
 in reports.docs
 ) {
-
+bool verified =report["verified"] ?? true;if (!verified) continue; //Check db & Ignore flagged reports
+String risk =(report["risk"] ?? "LOW").toString().toUpperCase();
 double severity =
-
-(report["severity"]?? 1).toDouble();
-
-Color zoneColor =severity >= 3? Colors.red.withOpacity(0.35,)
-
-  : severity == 2? Colors.orange.withOpacity(0.30,)
-
-: Colors.yellow.withOpacity(
-0.25,
+risk == "HIGH"? 3: risk == "MEDIUM"? 2: 1;
+Color zoneColor =
+severity >= 3? Colors.red.withValues(alpha: 0.35,)
+: severity == 2? Colors.orange.withValues(alpha: 0.30,)
+: Colors.yellow.withValues(alpha: 0.25,
 );
-
 floodZones.add(
-
 CircleMarker(
-
-point:
-
-LatLng(
-report["lat"],
-report["lng"],
+point:LatLng(
+  report["lat"],
+  report["lng"],
 ),
-
-radius:
-severity *
-300,
-
-useRadiusInMeter:
-true,
-
-color:
-zoneColor,
-
-borderColor:
-Colors.red,
-
-borderStrokeWidth:
-2,
-
+radius:severity *300,
+useRadiusInMeter:true,
+color:zoneColor,
+borderColor:Colors.red,
+borderStrokeWidth:2,
 ),
-
 );
-
 markers.add(
-
 Marker(
-
-point:
-
-LatLng(
-report["lat"],
-report["lng"],
-),
-
+point:LatLng(
+     report["lat"],
+     report["lng"],),
 width: 50,
-
 height: 50,
-
-child:
-
-Icon(
-
-Icons.warning,
-
-color:
-
-severity >= 3
-
-? Colors.red
-
-: severity == 2
-
-? Colors.orange
-
-: Colors.yellow,
-
-size: 35,
-
+child:Icon(
+  Icons.warning,
+  color:severity >= 3? Colors.red
+  : severity == 2? Colors.orange
+  : Colors.yellow,size: 35,
 ),
 
 ),
@@ -308,6 +239,144 @@ size: 35,
 if (mounted) {
 setState(() {});
 }
+}
+Future<void> updateRisk() async {
+int reportScore = 0;// get reports
+var reports =await FirebaseFirestore.instance.collection("flood_reports").get();
+for (var report in reports.docs) {
+      bool verified =report["verified"] ?? true;// Ignore flagged reports
+      if (!verified) continue;
+
+String risk =(report["risk"] ?? "LOW").toString().toUpperCase();
+if (risk == "HIGH") {
+reportScore += 3;
+}
+else if (risk == "MEDIUM") {
+reportScore += 2;
+}
+else {
+reportScore += 1;
+}
+}
+// WEATHER SCORE
+int weatherScore = 0;
+
+if (rainfall >= 10) {
+
+weatherScore = 3;
+
+}
+else if (rainfall >= 5) {
+
+weatherScore = 2;
+
+}
+else if (rainfall > 0) {
+
+weatherScore = 1;
+
+}
+
+int total =
+reportScore +
+(weatherScore * 2); // weather weighted more
+
+String newRisk = "LOW";
+Color newColor = Colors.green;
+
+if (total >= 15) {
+
+newRisk = "EXTREME";
+newColor = Colors.purple;
+
+}
+else if (total >= 10) {
+
+newRisk = "HIGH";
+newColor = Colors.red;
+
+}
+else if (total >= 5) {
+
+newRisk = "MEDIUM";
+newColor = Colors.orange;
+
+}
+
+if (!mounted) return;
+
+setState(() {
+
+riskLevel = newRisk;
+riskColor = newColor;
+
+});
+
+// Alerts only once
+if (
+(newRisk == "HIGH" ||
+newRisk == "EXTREME") &&
+!alertSent
+) {
+
+alertSent = true;
+
+sendFloodAlert();
+
+}
+
+if (
+newRisk == "LOW" ||
+newRisk == "MEDIUM"
+) {
+
+alertSent = false;
+
+}
+
+}
+void sendFloodAlert() {
+
+ScaffoldMessenger
+.of(context)
+
+.showSnackBar(
+
+SnackBar(
+
+backgroundColor:
+
+riskLevel ==
+"EXTREME"
+
+?
+
+Colors.purple
+
+:
+
+Colors.red,
+
+content:
+
+Text(
+
+riskLevel ==
+"EXTREME"
+
+?
+
+"🚨 Extreme Flood Risk"
+
+:
+
+"⚠️ High Flood Risk",
+
+),
+
+),
+
+);
 
 }
 
@@ -506,48 +575,33 @@ const EdgeInsets
 ),
 
 color:
-Colors.orange,
+riskColor,
 
 child:
 
-const Column(
-
+Column(
 children: [
 
-Text(
-
+const Text(
 "Current Risk",
-
-style:
-
-TextStyle(
-color:
-Colors.white,
+style: TextStyle(
+color: Colors.white,
 ),
 
 ),
 
 Text(
-
-"LOW",
-
-style:
-
-TextStyle(
-
-fontSize:
-22,
-
-color:
-Colors.white,
-
+riskLevel,
+style: const TextStyle(
+fontSize: 24,
+fontWeight: FontWeight.bold,
+color: Colors.white,
 ),
 
 ),
 
 ],
-
-),
+)
 
 ),
 
