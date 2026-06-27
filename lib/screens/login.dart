@@ -54,27 +54,29 @@ class _LoginPageState
     });
 
     if (result == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content:
-              Text(
-            "Login successful",
-          ),
-        ),
-      );
-
+     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+           behavior:SnackBarBehavior.floating,
+           margin:EdgeInsets.only(
+           bottom:MediaQuery.of(context).size.height - 150,left: 20,right: 20,),
+           shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12,),),
+           content:const Text("Login successful",),
+                              ),
+             );
       Navigator.pushReplacement(
         context,MaterialPageRoute(builder: (_) =>const HomePage(),
         ),
 );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text(result),
+          behavior:SnackBarBehavior.floating,
+           margin:EdgeInsets.only(bottom:MediaQuery.of(context).size.height - 150,left: 20,right: 20,
         ),
-      );
-    }
+        backgroundColor:Colors.red,
+        content:Text(result),
+        ),
+     );
+}
   }
 
   @override

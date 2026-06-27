@@ -54,9 +54,26 @@ class AuthService {
 
            return null;
 
-           } on FirebaseAuthException catch (e) {
-              return e.message;
-         }
+           }  on FirebaseAuthException catch (e) {
+
+        switch (e.code) {
+
+             case "email-already-in-use":
+             return "This email already exists";
+
+             case "weak-password":
+             return "Password must be at least 6 characters";
+
+             case "invalid-email":
+             return "Enter a valid email";
+
+             default:
+             return e.message ??
+             "Registration failed";
+
+}
+
+}
   }
 
   // LOGIN
@@ -88,8 +105,34 @@ class AuthService {
       return null;
 
     } on FirebaseAuthException catch (e) {
-      return e.message;
-    }
+
+switch (e.code) {
+
+case "user-not-found":
+return "No account exists with this email";
+
+case "wrong-password":
+return "Incorrect password";
+
+case "invalid-email":
+return "Enter a valid email";
+
+case "invalid-credential":
+return "Incorrect email or password";
+
+case "too-many-requests":
+return "Too many attempts. Try again later";
+
+case "user-disabled":
+return "This account has been disabled";
+
+default:
+return e.message ??
+"Login failed";
+
+}
+
+}
   }
 
   // LOGOUT
